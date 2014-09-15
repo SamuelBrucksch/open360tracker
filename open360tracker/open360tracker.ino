@@ -48,7 +48,7 @@ void loop()
     heading10 = getHeading();
     heading=heading10/10;
 
-    Serial.print("H:");Serial.print(heading);Serial.print(" T: ");Serial.print(targetHeading);Serial.print(" Error: ");Serial.print(Error[0]);Serial.print(" PWM: ");Serial.print(PWMOutput);Serial.print(" ErrorD: ");Serial.print(Dk);
+    Serial.print("H:");Serial.print(heading);Serial.print(" T: ");Serial.print(targetHeading/10);
     Serial.print(" P: ");Serial.print(P);Serial.print(" I: ");Serial.print(I);Serial.print(" D: "); Serial.println(D);    
     
     getError();       // Get position error
@@ -107,14 +107,14 @@ void calculatePID(void)
    if(Accumulator<-5000)
     Accumulator=-5000; 
   PID += I * Accumulator; // add integral gain and error accumulation
-  Dk=D * (Error[0]-Error[9]);
+  Dk=D * (Error[0]-Error[10]);
   PID += Dk; // differential gain comes next
   PID = PID >> Divider; // scale PID down with divider
   // limit the PID to the resolution we have for the PWM variable
-  if(PID >= 100)
-    PID = 100;
-  if(PID <= -100)
-    PID = -100;
+  if(PID >= 500)
+    PID = 500;
+  if(PID <= -500)
+    PID = -500;
   if (Error[0] > 10){
     PWMOutput = PAN_0+PID;
   }else if(Error[0] < -10){
