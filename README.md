@@ -10,7 +10,7 @@ H: 0 T: 0 P: 5000 I: 2500 D: 100
 
 Heading, Target, PID Values
 
-To set a value enter these in the serial monitor:
+To set a value enter this in the serial monitor:
 
 h90 = Target 90°
 
