@@ -5,14 +5,14 @@
  * created by Samuel Brucksch
  *
  */
-//#define DEBUG
+#define DEBUG
 
 /** PID Values
 *
 */
-//#define P 2500
-//#define I 40 //40
-//#define D 10 //10
+#define P 2200 //2200
+#define I 280 //280
+#define D 20000 //20000
 
 /* #### Protocol ####
  *
@@ -23,7 +23,7 @@
  *  HOTT -> MX12, MX16 and all other HoTT transmitters with telemetry
  *  EXTERNAL -> implement your own protocol
  */
-#define FRSKY_D
+#define FRSKY_X
 
 /* #### Baud Rate ####
  *
@@ -32,7 +32,7 @@
  * 57600 for FRSKY_X -> Taranis / XJT
  * ??? for HoTT
  */
-#define BAUD 9600
+#define BAUD 57600
 
 /* #### Tilt servo 0° adjustment ####
  *
@@ -91,7 +91,7 @@
 
 /* ### Vario Altitude ###
  *
- * Uncomment to use baro alt instead of GPS alt. Only works if Vario is presemt
+ * Uncomment to use baro alt instead of GPS alt. Only works if Vario is present
  *
  */
 //#define VARIO

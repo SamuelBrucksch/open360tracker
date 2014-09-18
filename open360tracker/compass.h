@@ -30,7 +30,7 @@ void compassMaxMin(int xRaw, int yRaw);
 void calcScaleFactor_Offset();
 void writeCalibration();
 void readCalibration();
-void calibrate(void);
+void calibrate_compass(void);
 
 #endif
 

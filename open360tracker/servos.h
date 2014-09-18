@@ -15,7 +15,7 @@
 #define TILT_SERVO OCR1B
 #define PAN_SERVO OCR1A
 #define SET_PAN_SERVO_SPEED(A) PAN_SERVO = A * 2
-#define SET_TILT_SERVO_ANGLE(A) TILT_SERVO = A * 2
+#define SET_TILT_SERVO_SPEED(A) TILT_SERVO = A * 2
 
 // Initializes both hardware PWMs to be used for tilt and pan servos.
 inline void initServos()
