@@ -2,7 +2,7 @@
 #ifdef FRSKY_D
 #include "telemetry.h"
 #include <avr/io.h>
-#include "uart.h"
+//#include "uart.h"
 #include "frsky_common.h"
 
 void processFrskyPacket(uint8_t *packet);

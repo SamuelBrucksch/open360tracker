@@ -22,8 +22,9 @@
  *  FRSKY_X -> Taranis / XJT
  *  HOTT -> MX12, MX16 and all other HoTT transmitters with telemetry
  *  EXTERNAL -> implement your own protocol
+ *  GPS_TELEMETRY -> NMEA/Ublox protocol over serial transmission system (e.g. 3DR radio)
  */
-#define FRSKY_X
+#define GPS_TELEMETRY
 
 /* #### Baud Rate ####
  *
