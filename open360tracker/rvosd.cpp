@@ -256,7 +256,10 @@ void encodeTargetData(uint8_t c){
 
   if (c == '\n'){
     //end of line -> checksum is available
-    buffer_index = 0;
+    if (checksum_calculation != checksum_read){
+        buffer_index = 0;
+        return;
+    }
   } 
   else{
     buffer_index++; 
