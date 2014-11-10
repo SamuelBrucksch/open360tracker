@@ -22,18 +22,20 @@
  *  FRSKY_X -> Taranis / XJT
  *  HOTT -> MX12, MX16 and all other HoTT transmitters with telemetry
  *  EXTERNAL -> implement your own protocol
+ *  RVOSD
  *  GPS_TELEMETRY -> NMEA/Ublox protocol over serial transmission system (e.g. 3DR radio)
  */
-#define GPS_TELEMETRY
+#define RVOSD
 
 /* #### Baud Rate ####
  *
  * baud rate of telemetry input
  * 9600 for FRSKY_D -> D-Series
  * 57600 for FRSKY_X -> Taranis / XJT
+ * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 57600
+#define BAUD 115200
 
 /* #### Tilt servo 0° adjustment ####
  *
