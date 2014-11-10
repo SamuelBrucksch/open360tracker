@@ -36,7 +36,7 @@ This code is written by Samuel Brucksch
  
  
  Checksum is everything XORed from "$" to "temperature".
- */
+*/
 
 #include "config.h"
 #ifdef RVOSD
@@ -81,6 +81,12 @@ int16_t getTargetAlt(){
 }
 
 void encodeTargetData(uint8_t c){
+  //only enable this to debug telemtry data. Else debug output will be flooded with rvosd protocol output.
+  #ifdef DEBUG
+    //uart_puts(c);
+  #endif
+  
+  
   //wait for frame to start
   if(c != '$' && buffer_index == 0){
     return;
