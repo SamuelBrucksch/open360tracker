@@ -42,6 +42,7 @@ This code is written by Samuel Brucksch
 #ifdef RVOSD
 #include "telemetry.h"
 #include "frsky_common.h"
+#include "uart.h"
 
 unsigned char buffer_index = 0;
 unsigned char commacount = 0;
@@ -63,16 +64,20 @@ uint16_t lon_bp;
 uint16_t lat_ap;
 uint16_t lon_ap;
 
+int32_t lat = 0;
+int32_t lon = 0;
+int16_t altitude = 0;
+
 int32_t getTargetLat(){
-  return gpsToLong(latsign, lat_bp, lat_ap);
+  return lat;
 }
 
 int32_t getTargetLon(){
-  return gpsToLong(lonsign, lon_bp, lon_ap);
+  return lon;
 }
 
 int16_t getTargetAlt(){
-  return altsign * alt;
+  return altitude;
 }
 
 void encodeTargetData(uint8_t c){
@@ -257,6 +262,9 @@ void encodeTargetData(uint8_t c){
   if (c == '\n'){
     //end of line -> checksum is available
     if (checksum_calculation != checksum_read){
+        #ifdef DEBUG
+          uart_puts("RVOSD: Checksum wrong. \n");
+        #endif
         buffer_index = 0;
         return;
     }
@@ -265,6 +273,15 @@ void encodeTargetData(uint8_t c){
     buffer_index++; 
     return;
   }
+
+  #ifdef DEBUG
+    uart_puts("RVOSD: Data valid and ready. \n");
+  #endif
+
+
+  lat = gpsToLong(latsign, lat_bp, lat_ap);
+  lon = gpsToLong(lonsign, lon_bp, lon_ap);
+  altitude = alt*altsign;
 
   // data is ready
   hasAlt = true;
