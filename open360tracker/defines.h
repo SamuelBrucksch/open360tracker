@@ -47,10 +47,10 @@ typedef struct {
 #define hasAlt             ( (volatile PackedBool*)(&GPIOR0) )->f4
 #define hasLat             ( (volatile PackedBool*)(&GPIOR0) )->f5
 #define hasLon             ( (volatile PackedBool*)(&GPIOR0) )->f6
-#define hasFix             ( (volatile PackedBool*)(&GPIOR0) )->f7
+#define gotNewHeading      ( (volatile PackedBool*)(&GPIOR0) )->f7
 
-#define gotNewHeading      ( (volatile PackedBool*)(&GPIOR1) )->f0
-//#define exampleBool_1_1    ( (volatile PackedBool*)(&GPIOR1) )->f1
+#define SETTING_HOME       ( (volatile PackedBool*)(&GPIOR1) )->f0
+#define hasFix             ( (volatile PackedBool*)(&GPIOR1) )->f1
 //#define exampleBool_1_2    ( (volatile PackedBool*)(&GPIOR1) )->f2
 //#define exampleBool_1_3    ( (volatile PackedBool*)(&GPIOR1) )->f3
 //#define exampleBool_1_4    ( (volatile PackedBool*)(&GPIOR1) )->f4

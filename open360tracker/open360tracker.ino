@@ -54,6 +54,7 @@ void setup()
   hasLon = false;
   hasAlt = false;
   HOME_SET = false;
+  SETTING_HOME = false;
   PREVIOUS_STATE = true;
   TRACKING_STARTED = false;
   CURRENT_STATE = true;
@@ -123,27 +124,37 @@ void loop()
       char s[10];
       uart_puts("Target alt: ");uart_puts(itoa(targetPosition.alt, s, 10));
     #endif
+    
+    // mfd has all the data at once, so we do not have to wait for valid lat/lon
+    #ifdef MFD
+      distance = getDistance();
+      targetPosition.heading = getAzimuth() * 10;
+      gotNewHeading = true;
+    #endif
+    
     hasAlt = false;
   }
   
-  //only calculate distance and heading when we have valid telemetry data
-  if (hasLat && hasLon){
-    targetPosition.lat = getTargetLat();
-    targetPosition.lon = getTargetLon();    
-    // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
-    distance = sqrt( (targetPosition.lat - trackerPosition.lat) * (targetPosition.lat - trackerPosition.lat) 
-                      + (targetPosition.lon - trackerPosition.lon) * (targetPosition.lon - trackerPosition.lon) );
-    targetPosition.heading = getHeading(&trackerPosition, &targetPosition);
-    #ifdef DEBUG
-      char s[10];
-      // TODO correct debug output for lat/lon
-      uart_puts("Lat: ");uart_puts(dtostrf(targetPosition.lat , 8, 5, s ));uart_puts(" Lon: ");uart_puts(dtostrf(targetPosition.lon , 7, 5, s ));
-      uart_puts(" Distance: ");uart_puts(itoa(distance, s, 10));uart_puts(" Heading: ");uart_puts(itoa(trackerPosition.heading/10, s, 10));uart_puts(" Target Heading: ");uart_puts(itoa(targetPosition.heading/10, s, 10));
-    #endif
-    hasLat = false;
-    hasLon = false;
-    gotNewHeading = true;
-  }
+  #ifndef MFD
+    //only calculate distance and heading when we have valid telemetry data
+    if (hasLat && hasLon){
+      targetPosition.lat = getTargetLat();
+      targetPosition.lon = getTargetLon();    
+      // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
+      distance = sqrt( (targetPosition.lat - trackerPosition.lat) * (targetPosition.lat - trackerPosition.lat) 
+                        + (targetPosition.lon - trackerPosition.lon) * (targetPosition.lon - trackerPosition.lon) );
+      targetPosition.heading = getHeading(&trackerPosition, &targetPosition);
+      #ifdef DEBUG
+        char s[10];
+        // TODO correct debug output for lat/lon
+        uart_puts("Lat: ");uart_puts(dtostrf(targetPosition.lat , 8, 5, s ));uart_puts(" Lon: ");uart_puts(dtostrf(targetPosition.lon , 7, 5, s ));
+        uart_puts(" Distance: ");uart_puts(itoa(distance, s, 10));uart_puts(" Heading: ");uart_puts(itoa(trackerPosition.heading/10, s, 10));uart_puts(" Target Heading: ");uart_puts(itoa(targetPosition.heading/10, s, 10));
+      #endif
+      hasLat = false;
+      hasLon = false;
+      gotNewHeading = true;
+    }
+  #endif
   
   // TODO we should change this to a 50hz loop here, read the compass and update the servos
   // afterwards. 
@@ -195,10 +206,15 @@ void loop()
     //only needed if no local gps
     if (!digitalRead(HOME_BUTTON)){
       //set home
-      trackerPosition.lat = getTargetLat();
-      trackerPosition.lon = getTargetLon();
-      trackerPosition.alt = getTargetAlt();
-      HOME_SET = true;
+      #ifndef MFD
+        trackerPosition.alt = getTargetAlt();
+        trackerPosition.lat = getTargetLat();
+        trackerPosition.lon = getTargetLon();
+        HOME_SET = true;
+      #else
+      //MFD protocol: set home must be pressed on driver!
+      #endif
+      
     }
   #else
     if (gpsSerial.available()){
@@ -216,6 +232,13 @@ void loop()
       else{
         digitalWrite(LED_PIN, LOW); 
       }
+    }
+  #endif
+  
+  #ifdef MFD
+    if (SETTING_HOME){
+       HOME_SET = true;
+       SETTING_HOME = 0;
     }
   #endif
   

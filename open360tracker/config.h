@@ -10,9 +10,9 @@
 /** PID Values
 *
 */
-#define P 2200 //2200
-#define I 280 //280
-#define D 20000 //20000
+#define P 2200 //default 2200
+#define I 280 //default 280
+#define D 20000 //default 20000
 
 /* #### Protocol ####
  *
@@ -24,8 +24,9 @@
  *  EXTERNAL -> implement your own protocol
  *  RVOSD
  *  GPS_TELEMETRY -> NMEA/Ublox protocol over serial transmission system (e.g. 3DR radio)
+ *  MFD -> MFD protocol will not work with local GPS!!!!
  */
-#define RVOSD
+#define MFD
 
 /* #### Baud Rate ####
  *
@@ -61,7 +62,7 @@
  * Enter your city and then get the value for Magnetic declination
  * for example [Magnetic declination: 3° 2' EAST]
  *
- * now enter the value in the format DEGREE.MINUTE -> 3.2
+ * now enter the value in the format DEGREE.MINUTE * 10 -> 3.2 * 10 = 32
  *
  * set to 0 if you cannot find your declination!
  */
@@ -73,7 +74,9 @@
  *
  * uncomment #define LOCAL_GPS to disable local GPS
  */
-//#define LOCAL_GPS
+#ifndef MFD
+  //#define LOCAL_GPS
+#endif
 #define GPS_BAUDRATE 38400
 
 /* #### Local GPS type ####
@@ -82,6 +85,7 @@
  *
  * Types:
  * MTK, UBX
+ * UBX not implemented yet
  */
 #define MTK
 
