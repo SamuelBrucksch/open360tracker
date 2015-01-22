@@ -15,6 +15,12 @@
 #include "telemetry.h"
 #include "uart.h"
 
+#ifdef LCD_DISPLAY
+  #include <LiquidCrystal_I2C.h>
+  LiquidCrystal_I2C lcd(0x27);
+  char lcd_str[16];
+#endif
+
 unsigned long time;
 unsigned long calib_timer;
 
@@ -25,6 +31,8 @@ long PID;
 uint8_t Divider = 15;
 int PWMOutput;
 long Dk;
+
+
 
 #ifdef LOCAL_GPS
   void initGps();
@@ -50,6 +58,14 @@ geoCoordinate_t trackerPosition;
 
 void setup()
 {
+  #ifdef LCD_DISPLAY
+    lcd.begin(16,2);
+    lcd.home();
+    lcd.print(" open360tracker ");
+    lcd.setCursor ( 0, 1 );
+    lcd.print("   version 0.1  ");
+  #endif
+  
   hasLat = false;
   hasLon = false;
   hasAlt = false;
@@ -104,11 +120,21 @@ void setup()
   #ifdef DEBUG
     uart_puts("Setup finished\n");
   #endif
+  
+  #ifdef LCD_DISPLAY
+    delay(2000);
+    
+    lcd.clear();
+    lcd.setCursor(0,0);
+    sprintf(lcd_str, "HDG:%03u AZI:%03u", 0, 0);
+    lcd.print(lcd_str);
+    lcd.setCursor(0,1);
+    sprintf(lcd_str, "A:%05d D:%05u", 0, 0);
+    lcd.print(lcd_str);
+  #endif
 
   time = millis();
 }
-
-
 
 void loop()
 {
@@ -133,6 +159,17 @@ void loop()
     #endif
     
     hasAlt = false;
+    
+    #ifdef LCD_DISPLAY    
+      lcd.clear();
+
+      lcd.setCursor(0,0);
+      sprintf(lcd_str, "HDG:%03u AZI:%03u", trackerPosition.heading/10, targetPosition.heading/10);
+      lcd.print(lcd_str);
+      lcd.setCursor(0,1);
+      sprintf(lcd_str, "A:%05d D:%05u", targetPosition.alt, distance);
+      lcd.print(lcd_str);
+    #endif
   }
   
   #ifndef MFD

@@ -103,4 +103,13 @@
  */
 //#define VARIO
 
+/* ### LCD Display ###
+ *
+ * Uncomment to display data on LCD Display
+ *
+ * I2C LCD Display is required.
+ *
+ */
+#define LCD_DISPLAY
+
 #endif
