@@ -75,28 +75,24 @@ void encodeTargetData(uint8_t c){
     azimuth = 0;
     mfd_distance = 1000;
     alt = 0;
-    hasAlt = 1;
     testMode = 1;
     return;
   } else if (c == 'E'){
     azimuth = 90;
     mfd_distance = 1000;
     alt = 1000;
-    hasAlt = 1;
     testMode = 1;
     return;
   } else if (c == 'S'){
     azimuth = 180;
     mfd_distance = 0;
     alt = 1000;
-    hasAlt = 1;
     testMode = 1;
     return;
   } else if (c == 'W'){
     azimuth = 270;
     mfd_distance = 1000;
     alt = 0;
-    hasAlt = 1;
     testMode = 1;
     return;
   }
