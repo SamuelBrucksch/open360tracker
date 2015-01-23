@@ -156,7 +156,6 @@ void loop()
     #ifdef MFD
       distance = getDistance();
       targetPosition.heading = getAzimuth() * 10;
-      gotNewHeading = true;
     #endif
     
     hasAlt = false;
@@ -190,7 +189,6 @@ void loop()
       #endif
       hasLat = false;
       hasLon = false;
-      gotNewHeading = true;
     }
   #endif
   
@@ -279,7 +277,7 @@ void loop()
        SETTING_HOME = 0;
     }
     
-    if (!HOME_SET && testMode){
+    if (!HOME_SET && testMode && gotNewHeading){
         distance = getDistance();
         targetPosition.alt = getTargetAlt();
         targetPosition.heading = getAzimuth()*10;
@@ -287,7 +285,8 @@ void loop()
         getError();
         calculatePID();
         SET_PAN_SERVO_SPEED(PWMOutput);
-        hasAlt = 0;
+        calcTilt(); 
+        gotNewHeading = false;
     }
   #endif
   
@@ -310,14 +309,15 @@ void loop()
         calculatePID();   // Calculate the PID output from the error
         SET_PAN_SERVO_SPEED(PWMOutput);
         gotNewHeading = false;
+        
+        calcTilt(); 
       }
-      calcTilt(); 
     } 
 }
 
 //Tilt angle alpha = atan(alt/dist) 
-void calcTilt(){
-
+void calcTilt()
+{
   uint16_t alpha = 0;
   //prevent division by 0
   if (distance == 0){
@@ -380,6 +380,7 @@ void calculatePID(void)
   }
 }
 
+#ifndef MFD
 uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b)
 {
   // get difference between both points
@@ -392,6 +393,7 @@ uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b)
   // shift from -180/180 to 0/359
   return (uint16_t)(angle < 0 ? angle + 360 : angle);
 }
+#endif
 
 #ifdef LOCAL_GPS
 void initGps(){
