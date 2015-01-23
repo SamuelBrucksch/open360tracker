@@ -51,7 +51,7 @@ typedef struct {
 
 #define SETTING_HOME       ( (volatile PackedBool*)(&GPIOR1) )->f0
 #define hasFix             ( (volatile PackedBool*)(&GPIOR1) )->f1
-//#define exampleBool_1_2    ( (volatile PackedBool*)(&GPIOR1) )->f2
+#define testMode           ( (volatile PackedBool*)(&GPIOR1) )->f2
 //#define exampleBool_1_3    ( (volatile PackedBool*)(&GPIOR1) )->f3
 //#define exampleBool_1_4    ( (volatile PackedBool*)(&GPIOR1) )->f4
 //#define exampleBool_1_5    ( (volatile PackedBool*)(&GPIOR1) )->f5
@@ -64,4 +64,3 @@ typedef struct {
 #define meter2feet(value) value * 3.2808399
 #define feet2meter(value) value * 0.3048
 #endif
-
