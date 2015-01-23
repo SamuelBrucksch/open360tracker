@@ -75,6 +75,7 @@ void setup()
   TRACKING_STARTED = false;
   CURRENT_STATE = true;
   gotNewHeading = false;
+  testMode = false;
 
   cli(); 
     initUart();
@@ -180,7 +181,7 @@ void loop()
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
       distance = sqrt( (targetPosition.lat - trackerPosition.lat) * (targetPosition.lat - trackerPosition.lat) 
                         + (targetPosition.lon - trackerPosition.lon) * (targetPosition.lon - trackerPosition.lon) );
-      targetPosition.heading = getHeading(&trackerPosition, &targetPosition);
+      targetPosition.heading = getHeading(&trackerPosition, &targetPosition)*10;
       #ifdef DEBUG
         char s[10];
         // TODO correct debug output for lat/lon
@@ -276,6 +277,17 @@ void loop()
     if (SETTING_HOME){
        HOME_SET = true;
        SETTING_HOME = 0;
+    }
+    
+    if (!HOME_SET && testMode){
+        distance = getDistance();
+        targetPosition.alt = getTargetAlt();
+        targetPosition.heading = getAzimuth()*10;
+        
+        getError();
+        calculatePID();
+        SET_PAN_SERVO_SPEED(PWMOutput);
+        hasAlt = 0;
     }
   #endif
   
