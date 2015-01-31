@@ -1,4 +1,4 @@
-/* Open Source 360Â° continuous rotation antenna tracker software
+/* Open Source 360° continuous rotation antenna tracker software
  * created by Samuel Brucksch
  *
  * Digital Smooth method from Arduino playground: http://playground.arduino.cc/Main/DigitalSmooth
@@ -343,10 +343,8 @@ void calcTilt()
   //just for current tests, later we will have negative tilt as well
   if (alpha < 0)
     alpha = 0;
-    
-  // same as arduinos map but a little bit faster ;)
-  // Please note that this currently only works with positive tilt !!
-  SET_TILT_SERVO_SPEED(alpha * (TILT_90 - TILT_0) / 90 + TILT_0);
+  
+  SET_TILT_SERVO_SPEED(map(alpha, 0, 90, TILT_0, TILT_90));
 }
 
 void getError(void)
@@ -424,3 +422,4 @@ void initGps(){
   #endif
 }
 #endif
+
