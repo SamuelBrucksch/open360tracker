@@ -27,12 +27,16 @@ int16_t getTargetAlt(){
 uint8_t state = 0;
 
 void encodeTargetData(uint8_t c){
+  #ifdef DEBUG
+    Serial.write(c);
+  #endif
   if (c == 'D'){
     //distance
     state = 1;
     mfd_distance = 0;
     read_checksum = 0;
     calc_checksum = c;
+    alt_neg = 1;
     testMode = 0;
     return;
   } else if (c == 'H'){
@@ -53,6 +57,9 @@ void encodeTargetData(uint8_t c){
     return;
   } else if (c == '\r'){
     //newline
+    #ifdef DEBUG
+     Serial.print("\nDebug values: [Dist ");Serial.print(mfd_distance);Serial.print("] [Alt ");Serial.print(alt_neg*alt);Serial.print("] [Azimuth ");Serial.print(azimuth);Serial.print("] [Read");Serial.print(read_checksum);Serial.print("] [Calc");Serial.print(calc_checksum);Serial.println("]");
+    #endif
     if (calc_checksum == read_checksum){
       hasAlt = 1;
     }
@@ -106,7 +113,7 @@ void encodeTargetData(uint8_t c){
     calc_checksum += c;
     if (c == '-'){
       alt_neg = -1;
-      return;
+      break;
     }
     alt = (alt * 10) + (c-48);
     break;

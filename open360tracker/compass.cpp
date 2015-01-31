@@ -14,9 +14,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "servos.h"
-#ifdef DEBUG
-  #include "uart.h"
-#endif
+
 #include "eeprom_functions.h"
 
 static float   magGain[3] = {1.0,1.0,1.0};

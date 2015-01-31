@@ -13,16 +13,25 @@
 #include "servos.h"
 #include "inttypes.h"
 #include "telemetry.h"
-#include "uart.h"
 
 #ifdef LCD_DISPLAY
+  //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
   #include <LiquidCrystal_I2C.h>
-  LiquidCrystal_I2C lcd(0x27);
+  LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
   char lcd_str[16];
+  long lcd_time;
 #endif
 
 unsigned long time;
 unsigned long calib_timer;
+
+void calcTilt();
+void getError();
+void calculatePID();
+
+#ifndef MFD
+  uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b);
+#endif
 
 //PID stuff
 long Error[11];
@@ -31,15 +40,10 @@ long PID;
 uint8_t Divider = 15;
 int PWMOutput;
 long Dk;
-
-
-
 #ifdef LOCAL_GPS
   void initGps();
 #endif
-// inlined as it gets called from only one location
-void calcTilt() __attribute__((always_inline));
-uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b) __attribute__((always_inline));
+
 
 #ifdef LOCAL_GPS
   #include <SoftwareSerial.h>
@@ -60,6 +64,8 @@ void setup()
 {
   #ifdef LCD_DISPLAY
     lcd.begin(16,2);
+    lcd.setBacklightPin(3,POSITIVE);
+    lcd.setBacklight(HIGH);
     lcd.home();
     lcd.print(" open360tracker ");
     lcd.setCursor ( 0, 1 );
@@ -77,11 +83,10 @@ void setup()
   gotNewHeading = false;
   testMode = false;
 
-  cli(); 
-    initUart();
-  sei(); 
+  Serial.begin(BAUD);
+  
   #ifdef DEBUG
-    uart_puts("Setup start\n");
+    Serial.println("Setup start");
   #endif
   
   pinMode(LED_PIN, OUTPUT);
@@ -99,18 +104,18 @@ void setup()
   
   // init pan/tilt servos controlled via hardware pwm
   #ifdef DEBUG
-    uart_puts("Init Servos\n");
+    Serial.println("Init Servos");
   #endif
   initServos();
   
   #ifdef DEBUG
-    uart_puts("Init Compass\n");
+    Serial.println("Init Compass");
   #endif
   initCompass();
   
   #ifdef LOCAL_GPS
     #ifdef DEBUG
-      uart_puts("Init local GPS\n");
+      Serial.println("Init local GPS");
     #endif
     gpsSerial.begin(GPS_BAUDRATE);
     //let gps serial initialize before we configure it
@@ -118,9 +123,7 @@ void setup()
     initGps();
   #endif
 
-  #ifdef DEBUG
-    uart_puts("Setup finished\n");
-  #endif
+
   
   #ifdef LCD_DISPLAY
     delay(2000);
@@ -132,44 +135,64 @@ void setup()
     lcd.setCursor(0,1);
     sprintf(lcd_str, "A:%05d D:%05u", 0, 0);
     lcd.print(lcd_str);
+    lcd_time = millis();
   #endif
 
   time = millis();
+  
+  
+  #ifdef DEBUG
+    Serial.println("Setup finished");
+  #endif
 }
 
 void loop()
 {
-  uint8_t c;
-  if (uart_get_char(c))
+  //TODO change to telemetry serial port
+  if (Serial.available() > 1)
   {
+    uint8_t c = Serial.read();
+    
+    //TODO remove after debugging
+    if (c == 'C'){
+        calibrate_compass();
+    }   
     encodeTargetData(c);
   }
+  
+  #ifdef LCD_DISPLAY
+  if (millis() > lcd_time){
+    lcd.setCursor(0,0);
+    sprintf(lcd_str, "HDG:%03u AZI:%03u", trackerPosition.heading/10, targetPosition.heading/10);
+    lcd.print(lcd_str);
+    lcd.setCursor(0,1);
+    sprintf(lcd_str, "A:%05d D:%05u", targetPosition.alt, distance);
+    lcd.print(lcd_str);
+    lcd_time = millis() + 200;
+  }
+  #endif
 
   if (hasAlt){
     targetPosition.alt = getTargetAlt();
-    #ifdef DEBUG
-      char s[10];
-      uart_puts("Target alt: ");uart_puts(itoa(targetPosition.alt, s, 10));
-    #endif
+    
     
     // mfd has all the data at once, so we do not have to wait for valid lat/lon
     #ifdef MFD
       distance = getDistance();
       targetPosition.heading = getAzimuth() * 10;
+      #ifdef DEBUG
+        Serial.print("Target alt: ");Serial.print(targetPosition.alt);
+        Serial.print(" Target distance: ");Serial.print(distance);
+        Serial.print(" Target heading: ");Serial.print(targetPosition.heading/10);
+        Serial.print(" Tracker heading: ");Serial.println(trackerPosition.heading/10);
+      #endif
+    #else
+      #ifdef DEBUG
+        Serial.print("Target alt: ");Serial.println(targetPosition.alt);
+      #endif
     #endif
     
     hasAlt = false;
-    
-    #ifdef LCD_DISPLAY    
-      lcd.clear();
-
-      lcd.setCursor(0,0);
-      sprintf(lcd_str, "HDG:%03u AZI:%03u", trackerPosition.heading/10, targetPosition.heading/10);
-      lcd.print(lcd_str);
-      lcd.setCursor(0,1);
-      sprintf(lcd_str, "A:%05d D:%05u", targetPosition.alt, distance);
-      lcd.print(lcd_str);
-    #endif
   }
   
   #ifndef MFD
@@ -182,10 +205,12 @@ void loop()
                         + (targetPosition.lon - trackerPosition.lon) * (targetPosition.lon - trackerPosition.lon) );
       targetPosition.heading = getHeading(&trackerPosition, &targetPosition)*10;
       #ifdef DEBUG
-        char s[10];
         // TODO correct debug output for lat/lon
-        uart_puts("Lat: ");uart_puts(dtostrf(targetPosition.lat , 8, 5, s ));uart_puts(" Lon: ");uart_puts(dtostrf(targetPosition.lon , 7, 5, s ));
-        uart_puts(" Distance: ");uart_puts(itoa(distance, s, 10));uart_puts(" Heading: ");uart_puts(itoa(trackerPosition.heading/10, s, 10));uart_puts(" Target Heading: ");uart_puts(itoa(targetPosition.heading/10, s, 10));
+        Serial.print("Lat: "); Serial.print(targetPosition.lat); 
+        Serial.print(" Lon: "); Serial.print(targetPosition.lon);
+        Serial.print(" Distance: "); Serial.print(distance);
+        Serial.print(" Heading: "); Serial.print(trackerPosition.heading/10);
+        Serial.print(" Target Heading: "); Serial.print(targetPosition.heading/10);
       #endif
       hasLat = false;
       hasLon = false;
@@ -204,19 +229,8 @@ void loop()
     trackerPosition.heading = getHeading();
     gotNewHeading = true;
     #ifdef DEBUG
-      char s[10];
-      uart_puts(itoa(trackerPosition.heading/10,s,10));uart_puts("\n");
+      //Serial.print("Current heading: ");Serial.println(trackerPosition.heading/10);
     #endif
-  
-    /*time = millis() + 14;
-    heading10 = getHeading();
-    #ifdef DEBUG
-      Serial.print("H:");Serial.print(heading10/10);Serial.print(" T: ");Serial.print(targetHeading/10);
-      Serial.print(" P: ");Serial.print(P);Serial.print(" I: ");Serial.print(I);Serial.print(" D: "); Serial.println(D);    
-    #endif
-    getError();       // Get position error
-    calculatePID();   // Calculate the PID output from the error
-    SET_PAN_SERVO_SPEED(PWMOutput);*/
   }
   
   CURRENT_STATE = digitalRead(CALIB_BUTTON);

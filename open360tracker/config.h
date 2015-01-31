@@ -36,7 +36,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 115200
+#define BAUD 19200
 
 /* #### Tilt servo 0° adjustment ####
  *
@@ -54,7 +54,7 @@
  *
  *  Enter PWM value of Servo for not moving
  */
-#define PAN_0 1492
+#define PAN_0 1470
 
 /* #### Compass declination ####
  *
