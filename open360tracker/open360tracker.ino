@@ -270,7 +270,7 @@ void loop()
     if (gpsSerial.available()){
       uint8_t c = gpsSerial.read();
       #ifdef DEBUG
-        uart_putc(c);
+        Serial.write(c);
       #endif
       if (gps.encode(c)){
         gps.get_position(&trackerPosition.lat,&trackerPosition.lon);
