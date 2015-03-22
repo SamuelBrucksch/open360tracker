@@ -18,8 +18,10 @@
   //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
   #include <LiquidCrystal_I2C.h>
   LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
-  char lcd_str[16];
+  char lcd_str[24];
   long lcd_time;
+  boolean screen2 = false;
+  int screenCounter = 0;
 #endif
 
 unsigned long time;
@@ -123,11 +125,7 @@ void setup()
     initGps();
   #endif
 
-
-  
   #ifdef LCD_DISPLAY
-    delay(2000);
-    
     lcd.clear();
     lcd.setCursor(0,0);
     sprintf(lcd_str, "HDG:%03u AZI:%03u", 0, 0);
@@ -152,29 +150,46 @@ void loop()
   if (Serial.available() > 1)
   {
     uint8_t c = Serial.read();
-    
-    //TODO remove after debugging
-    if (c == 'C'){
-        calibrate_compass();
-    }   
+
     encodeTargetData(c);
+    digitalWrite(LED_PIN, HIGH);
+  }else{
+    digitalWrite(LED_PIN, LOW);  
   }
   
   #ifdef LCD_DISPLAY
   if (millis() > lcd_time){
-    lcd.setCursor(0,0);
-    sprintf(lcd_str, "HDG:%03u AZI:%03u", trackerPosition.heading/10, targetPosition.heading/10);
-    lcd.print(lcd_str);
-    lcd.setCursor(0,1);
-    sprintf(lcd_str, "A:%05d D:%05u", targetPosition.alt, distance);
-    lcd.print(lcd_str);
+    if (screenCounter % 25 == 0){
+      screen2 = !screen2;
+      screenCounter = 0;
+    }
+    
+    if (!screen2){
+      lcd.setCursor(0,0);
+      sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading/10, targetPosition.heading/10, getSats());
+      lcd.print(lcd_str);
+      lcd.setCursor(0,1);
+      sprintf(lcd_str, "A:%05d D:%05u", targetPosition.alt, distance);
+      lcd.print(lcd_str);
+    }else{
+      lcd.setCursor(0,0);
+      lcd.print("Lat:");
+      dtostrf(getTargetLat()/100000.0f, 12, 5, lcd_str);
+      lcd.print(lcd_str);
+      
+      lcd.setCursor(0,1);
+      lcd.print("Lon:");
+      dtostrf(getTargetLon()/100000.0f, 12, 5, lcd_str);
+      lcd.print(lcd_str);
+    }
+
     lcd_time = millis() + 200;
+    screenCounter++;
   }
   #endif
 
   if (hasAlt){
     targetPosition.alt = getTargetAlt();
-    
     
     // mfd has all the data at once, so we do not have to wait for valid lat/lon
     #ifdef MFD
@@ -245,6 +260,12 @@ void loop()
      } else if (CURRENT_STATE && millis() - calib_timer > 4000){
        //start calibration routine if button pressed > 4s and released
        //cli();
+       lcd.clear();
+       lcd.setCursor(0,0);
+       //sprintf(lcd_str, "HDG:%03u AZI:%03u", 0, 0);
+       lcd.print("Calibration in");
+       lcd.setCursor(0,1);
+       lcd.print("progress...");
        calibrate_compass();
        calib_timer = 0; 
        //sei();

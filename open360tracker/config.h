@@ -5,7 +5,7 @@
  * created by Samuel Brucksch
  *
  */
-#define DEBUG
+//#define DEBUG
 
 /** PID Values
 *
@@ -68,16 +68,27 @@
  */
 #define DECLINATION 32
 
+/* #### Min Sats ####
+*
+* Start tracking only if sats is above min value. Sats is transmitted over T2 on DIY GPS. If sats is not available comment line.
+*
+* Comment to deactivate
+*/
+#define MIN_SATS 7
+
+
+#ifndef MFD
 /* #### Ground GPS ####
  *
  * needed for ground gps so home does not need to be manually set
  *
  * uncomment #define LOCAL_GPS to disable local GPS
+ * does not work when in MFD mode
  */
-#ifndef MFD
-  //#define LOCAL_GPS
-#endif
+//#define LOCAL_GPS
 #define GPS_BAUDRATE 38400
+
+#endif
 
 /* #### Local GPS type ####
  *
@@ -114,7 +125,7 @@
 
 /* #### Do not edit below this line */
 #if TILT_0 < 1000 || TILT_0 > 2000 || TILT_90 > 2000  || TILT_90 < 1000
-  #error "Servo range invalid. Must be between 1000 and 2000."
+  #error "Tilt servo range invalid. Must be between 1000 and 2000."
 #endif
 
 #endif

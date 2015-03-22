@@ -14,9 +14,9 @@
 #define GPS_RX_PIN 8
 #define GPS_TX_PIN 7
 
-//coordinates in units of millionths of a degree
-// for example 52.520817 -> 52520817
-//             13.40945	 -> 13409450
+ //lat and lon required in units of millionths of a degree -> precision of 5 digits after '.'
+ // for example 52.52081 -> 5252081
+ //             13.40945 -> 1340945
 typedef struct{
   // latitude in units of millionths of a degree
   int32_t lat;

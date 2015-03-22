@@ -26,6 +26,8 @@ int32_t gpsToLong(int8_t neg, uint16_t bp, uint16_t ap);
 #define GPS_LONG_EW_ID     0x22
 #define GPS_LAT_NS_ID      0x23
 #define FRSKY_LAST_ID      0x3F
+//used for sats
+#define TEMP2              0x05
 
 // FrSky new DATA IDs (2 bytes)
 #define RSSI_ID            0xf101
@@ -47,6 +49,7 @@ uint8_t telemetryState = TELEMETRY_INIT;
 
 //alt in m
 int16_t alt;
+int16_t sats;
 
 int8_t latsign;
 int8_t lonsign;
@@ -68,9 +71,16 @@ void processHubPacket(uint8_t id, uint16_t value)
         alt = (int32_t)100 * value;
       #endif
       break;
-    case GPS_ALT_AP_ID:
+    case GPS_ALT_BP_ID:
       #ifndef VARIO
         alt = value;
+        hasAlt = true;
+      #endif;
+      break;
+    case GPS_ALT_AP_ID:
+      #ifndef VARIO
+        //alt = value;
+        //hasAlt = true;
       #endif;
       break;
     case GPS_LONG_BP_ID:
@@ -112,6 +122,9 @@ void processHubPacket(uint8_t id, uint16_t value)
         latsign = -1;
       }
       hasLat = true;
+      break;
+    case TEMP2:
+      sats = value;
       break;
   }
 }
@@ -180,6 +193,9 @@ enum FrSkyDataState {
   STATE_DATA_XOR,
 };
 
+int16_t getSats(){
+  return sats;  
+}
 
 int32_t getTargetLat(){
   return gpsToLong(latsign, lat_bp, lat_ap);
