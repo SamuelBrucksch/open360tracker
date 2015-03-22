@@ -26,7 +26,7 @@
  *  GPS_TELEMETRY -> NMEA/Ublox protocol over serial transmission system (e.g. 3DR radio)
  *  MFD -> MFD protocol will not work with local GPS!!!!
  */
-#define MFD
+#define FRSKY_X
 
 /* #### Baud Rate ####
  *
@@ -36,7 +36,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 19200
+#define BAUD 57600
 
 /* #### Tilt servo 0° adjustment ####
  *
