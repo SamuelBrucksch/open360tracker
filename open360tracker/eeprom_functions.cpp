@@ -18,7 +18,7 @@ short LoadByteFromEEPROM(uint8_t position)
 
 int LoadIntegerFromEEPROM(uint8_t position)
 {
-  return (EEPROM.read(0) + (EEPROM.read(1) << 8));
+  return (EEPROM.read(position) + (EEPROM.read(position + 1) << 8));
 }
 
 
