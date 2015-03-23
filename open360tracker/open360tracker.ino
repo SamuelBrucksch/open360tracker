@@ -138,7 +138,6 @@ void setup()
 
   time = millis();
   
-  
   #ifdef DEBUG
     Serial.println("Setup finished");
   #endif
