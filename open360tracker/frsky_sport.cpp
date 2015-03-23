@@ -26,7 +26,7 @@ int32_t gpsToLong(int8_t neg, uint16_t bp, uint16_t ap);
 #define GPS_LONG_EW_ID     0x22
 #define GPS_LAT_NS_ID      0x23
 #define FRSKY_LAST_ID      0x3F
-//used for sats
+//used for sats and fix type
 #define TEMP2              0x05
 
 // FrSky new DATA IDs (2 bytes)
@@ -49,7 +49,8 @@ uint8_t telemetryState = TELEMETRY_INIT;
 
 //alt in m
 int16_t alt;
-int16_t sats;
+uint8_t sats;
+uint8_t fix;
 
 int8_t latsign;
 int8_t lonsign;
@@ -124,7 +125,12 @@ void processHubPacket(uint8_t id, uint16_t value)
       hasLat = true;
       break;
     case TEMP2:
-      sats = value;
+      #ifdef DIY_GPS
+        sats = value / 10;
+        fix = value % 10;
+      #else
+        sats = value;
+      #endif
       break;
   }
 }

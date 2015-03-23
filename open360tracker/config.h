@@ -68,14 +68,17 @@
  */
 #define DECLINATION 32
 
-/* #### Min Sats ####
+/* #### DIY GPS / Fix Type ####
 *
-* Start tracking only if sats is above min value. Sats is transmitted over T2 on DIY GPS. If sats is not available comment line.
+* If you use the diy GPS the fix type is transmitted with the satellites on Temp2. It is built like this:
+* Num of Sats: 7
+* Fix Type: 3
+* Value = Sats * 10 + Fix Type = 7*10 + 3 = 73
 *
-* Comment to deactivate
+*If you use the native frsky gps or fixtype is not present comment to disable. It is strongly recommended to use a controller that can provide the fix type.
+*
 */
-#define MIN_SATS 7
-
+#define DIY_GPS
 
 #ifndef MFD
 /* #### Ground GPS ####

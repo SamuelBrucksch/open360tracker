@@ -21,6 +21,7 @@ void encodeTargetData(uint8_t c);
   int32_t getTargetLat();
   int32_t getTargetLon();
   int16_t getSats();
+  int16_t getFix();
 #endif
 
 #endif
