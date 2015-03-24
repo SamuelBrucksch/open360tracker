@@ -12,7 +12,7 @@ typedef union
 
 short LoadByteFromEEPROM(uint8_t position)
 {
-  return EEPROM.read(0);
+  return EEPROM.read(position);
 }
 
 
