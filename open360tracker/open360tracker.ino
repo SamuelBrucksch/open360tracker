@@ -217,7 +217,7 @@ void loop()
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
       distance = sqrt( (targetPosition.lat - trackerPosition.lat) * (targetPosition.lat - trackerPosition.lat) 
                         + (targetPosition.lon - trackerPosition.lon) * (targetPosition.lon - trackerPosition.lon) );
-      targetPosition.heading = getHeading(&trackerPosition, &targetPosition)*10;
+      targetPosition.heading = getHeading(&trackerPosition, &targetPosition);
       #ifdef DEBUG
         // TODO correct debug output for lat/lon
         Serial.print("Lat: "); Serial.print(targetPosition.lat); 
@@ -420,10 +420,10 @@ uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b)
   int32_t lon = a->lon - b->lon;
   
   // calculate angle in radians and convert to degrees
-  int16_t angle = atan2(lat, lon) * (180 / PI);
+  int16_t angle = atan2(lat, lon) * (1800 / PI);
   
-  // shift from -180/180 to 0/359
-  return (uint16_t)(angle < 0 ? angle + 360 : angle);
+  // shift from -180/180 to 0/3599
+  return (uint16_t)(angle < 0 ? angle + 3600 : angle);
 }
 #endif
 
