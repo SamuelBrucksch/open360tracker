@@ -13,7 +13,8 @@
 #include "servos.h"
 #include "inttypes.h"
 #include "telemetry.h"
-#include <TinyGPS.h>
+//#include <TinyGPS.h>
+#include <TinyGPS++.h>
 
 #ifdef LCD_DISPLAY
   //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
@@ -32,10 +33,6 @@ void calcTilt();
 void getError();
 void calculatePID();
 
-#ifndef MFD
-  uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b);
-#endif
-
 //PID stuff
 long Error[11];
 long Accumulator;
@@ -47,10 +44,10 @@ long Dk;
   void initGps();
 #endif
 
-
 #ifdef LOCAL_GPS
   #include <SoftwareSerial.h>
   SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
+  //TODO change to gps++
   TinyGPS gps;
 #endif
 
@@ -158,7 +155,7 @@ void loop()
   #ifdef LCD_DISPLAY
   if (millis() > lcd_time){
     //switch screen every X seconds
-    if (millis() % 1000 > SWITCH_SECONDS*1000){
+    if (millis() % 10000 > SWITCH_SECONDS*1000){
       //headings, alt, distance, sats
       lcd.setCursor(0,0);
       sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading/10, targetPosition.heading/10, getSats());
@@ -170,11 +167,11 @@ void loop()
       //lat, lon
       lcd.setCursor(0,0);
       lcd.print("Lat:");
-      dtostrf(getTargetLat()/100000.0f, 12, 5, lcd_str);
+      dtostrf(getTargetLat()/100000.0f, 12, 6, lcd_str);
       lcd.print(lcd_str);
       lcd.setCursor(0,1);
       lcd.print("Lon:");
-      dtostrf(getTargetLon()/100000.0f, 12, 5, lcd_str);
+      dtostrf(getTargetLon()/100000.0f, 12, 6, lcd_str);
       lcd.print(lcd_str);  
     }
     lcd_time = millis() + 200;
@@ -208,12 +205,10 @@ void loop()
     if (hasLat && hasLon){
       targetPosition.lat = getTargetLat();
       targetPosition.lon = getTargetLon();    
-      // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
-      /*distance = sqrt( (targetPosition.lat - trackerPosition.lat) * (targetPosition.lat - trackerPosition.lat) 
-                        + (targetPosition.lon - trackerPosition.lon) * (targetPosition.lon - trackerPosition.lon) );*/
-      distance = TinyGPS::distance_between(targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f, trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f)/10;
 
-      targetPosition.heading = getHeading(&trackerPosition, &targetPosition);
+      distance = TinyGPSPlus::distanceBetween(targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f, trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f)/10;
+      targetPosition.heading = TinyGPSPlus::courseTo(trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f, targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f)*10.0f;
+
       #ifdef DEBUG
         // TODO correct debug output for lat/lon
         Serial.print("Lat: "); Serial.print(targetPosition.lat); 
@@ -226,11 +221,6 @@ void loop()
       hasLon = false;
     }
   #endif
-  
-  // TODO we should change this to a 50hz loop here, read the compass and update the servos
-  // afterwards. 
-  // As a result there will be no overhead in reading compass values and the compass is read
-  // when it makes sense, because the servos can only be refreshed at 50hz.
   
   // refresh rate of compass is 75Hz -> 13.333ms to refresh the data
   // we update the heading every 14ms to get as many samples into the smooth array as possible
@@ -273,9 +263,9 @@ void loop()
     if (!digitalRead(HOME_BUTTON)){
       //set home
       #ifndef MFD
-        trackerPosition.alt = getTargetAlt();
-        trackerPosition.lat = getTargetLat();
-        trackerPosition.lon = getTargetLon();
+        trackerPosition.alt = targetPosition.alt;
+        trackerPosition.lat = targetPosition.lat;
+        trackerPosition.lon = targetPosition.lon;
         HOME_SET = true;
       #else
       //MFD protocol: set home must be pressed on driver!
@@ -407,23 +397,6 @@ void calculatePID(void)
     PWMOutput = PAN_0;
   }
 }
-
-#ifndef MFD
-uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b)
-{
-  /*
-  // get difference between both points
-  int32_t lat = a->lat - b->lat;
-  int32_t lon = a->lon - b->lon;
-  
-  // calculate angle in radians and convert to degrees
-  int16_t angle = atan2(lat, lon) * (1800 / PI);
-  
-  // shift from -180/180 to 0/3599
-  return (uint16_t)(angle < 0 ? angle + 3600 : angle);*/
-  return TinyGPS::course_to(a->lat / 100000.0f, a->lon / 100000.0f, b->lat / 100000.0f, b->lon / 100000.0f)*10;
-}
-#endif
 
 #ifdef LOCAL_GPS
 void initGps(){

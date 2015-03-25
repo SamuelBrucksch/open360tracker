@@ -216,9 +216,7 @@ int getHeading(){
   smoothed[0] = (digitalSmooth(magADC[0], xSmooth) * magGain[0]) - magZero[0];
   smoothed[1] = (digitalSmooth(magADC[1], ySmooth) * magGain[1]) - magZero[1];
   smoothed[2] = (digitalSmooth(magADC[2], zSmooth) * magGain[2]) - magZero[2];
-  /*magADC[0] = magADC[0] * magGain[0];
-  magADC[1] = magADC[1] * magGain[1];
-  magADC[2] = magADC[2] * magGain[2];*/
+  
   double heading = atan2(smoothed[1], smoothed[0]) ;
 
   if(heading < 0)
@@ -227,5 +225,5 @@ int getHeading(){
   if(heading > 2*M_PI)
     heading -= 2*M_PI;
 
-  return (int) ((heading * 1800.0/M_PI) + DECLINATION + 1800 + OFFSET) % 3600;
+  return (int) ((heading * 1800.0/M_PI) + DECLINATION + OFFSET) % 3600;
 }
