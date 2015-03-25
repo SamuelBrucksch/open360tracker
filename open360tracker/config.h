@@ -68,6 +68,17 @@
  */
 #define DECLINATION 32
 
+/* #### Compass offset ####
+ *
+ * If you did not mount your compass with the arrow pointing to the front you can set an offset here. 
+ *
+ * Needs to be multiplied by 10 -> 90° = 900
+ *
+ * Range: 0 ... 3599
+ *
+ */
+#define OFFSET 900
+
 /* #### DIY GPS / Fix Type ####
 *
 * If you use the diy GPS the fix type is transmitted with the satellites on Temp2. It is built like this:
@@ -136,6 +147,10 @@
 /* #### Do not edit below this line */
 #if TILT_0 < 1000 || TILT_0 > 2000 || TILT_90 > 2000  || TILT_90 < 1000
   #error "Tilt servo range invalid. Must be between 1000 and 2000."
+#endif
+
+#if OFFSET < 0 || OFFSET > 3599
+  #error "Offset invalid. Must be between 0° and 359°."
 #endif
 
 #endif

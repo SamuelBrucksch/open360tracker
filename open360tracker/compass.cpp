@@ -227,5 +227,5 @@ int getHeading(){
   if(heading > 2*M_PI)
     heading -= 2*M_PI;
 
-  return (int) ((heading * 1800.0/M_PI)+ DECLINATION + 1800) % 3600;
+  return (int) ((heading * 1800.0/M_PI) + DECLINATION + 1800 + OFFSET) % 3600;
 }
