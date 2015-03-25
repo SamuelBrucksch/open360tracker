@@ -13,6 +13,7 @@
 #include "servos.h"
 #include "inttypes.h"
 #include "telemetry.h"
+#include <TinyGPS.h>
 
 #ifdef LCD_DISPLAY
   //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
@@ -50,8 +51,6 @@ long Dk;
 #ifdef LOCAL_GPS
   #include <SoftwareSerial.h>
   SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
-  
-  #include <TinyGPS.h>
   TinyGPS gps;
 #endif
 
@@ -158,12 +157,9 @@ void loop()
   
   #ifdef LCD_DISPLAY
   if (millis() > lcd_time){
-    if (screenCounter % 25 == 0){
-      screen2 = !screen2;
-      screenCounter = 0;
-    }
-    
-    if (!screen2){
+    //switch screen every X seconds
+    if (millis() % 1000 > SWITCH_SECONDS*1000){
+      //headings, alt, distance, sats
       lcd.setCursor(0,0);
       sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading/10, targetPosition.heading/10, getSats());
       lcd.print(lcd_str);
@@ -171,19 +167,17 @@ void loop()
       sprintf(lcd_str, "A:%05d D:%05u", targetPosition.alt, distance);
       lcd.print(lcd_str);
     }else{
+      //lat, lon
       lcd.setCursor(0,0);
       lcd.print("Lat:");
       dtostrf(getTargetLat()/100000.0f, 12, 5, lcd_str);
       lcd.print(lcd_str);
-      
       lcd.setCursor(0,1);
       lcd.print("Lon:");
       dtostrf(getTargetLon()/100000.0f, 12, 5, lcd_str);
-      lcd.print(lcd_str);
+      lcd.print(lcd_str);  
     }
-
     lcd_time = millis() + 200;
-    screenCounter++;
   }
   #endif
 
@@ -215,8 +209,10 @@ void loop()
       targetPosition.lat = getTargetLat();
       targetPosition.lon = getTargetLon();    
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
-      distance = sqrt( (targetPosition.lat - trackerPosition.lat) * (targetPosition.lat - trackerPosition.lat) 
-                        + (targetPosition.lon - trackerPosition.lon) * (targetPosition.lon - trackerPosition.lon) );
+      /*distance = sqrt( (targetPosition.lat - trackerPosition.lat) * (targetPosition.lat - trackerPosition.lat) 
+                        + (targetPosition.lon - trackerPosition.lon) * (targetPosition.lon - trackerPosition.lon) );*/
+      distance = TinyGPS::distance_between(targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f, trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f)/10;
+
       targetPosition.heading = getHeading(&trackerPosition, &targetPosition);
       #ifdef DEBUG
         // TODO correct debug output for lat/lon
@@ -224,7 +220,7 @@ void loop()
         Serial.print(" Lon: "); Serial.print(targetPosition.lon);
         Serial.print(" Distance: "); Serial.print(distance);
         Serial.print(" Heading: "); Serial.print(trackerPosition.heading/10);
-        Serial.print(" Target Heading: "); Serial.print(targetPosition.heading/10);
+        Serial.print(" Target Heading: "); Serial.println(targetPosition.heading/10);
       #endif
       hasLat = false;
       hasLon = false;
@@ -415,6 +411,7 @@ void calculatePID(void)
 #ifndef MFD
 uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b)
 {
+  /*
   // get difference between both points
   int32_t lat = a->lat - b->lat;
   int32_t lon = a->lon - b->lon;
@@ -423,7 +420,8 @@ uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b)
   int16_t angle = atan2(lat, lon) * (1800 / PI);
   
   // shift from -180/180 to 0/3599
-  return (uint16_t)(angle < 0 ? angle + 3600 : angle);
+  return (uint16_t)(angle < 0 ? angle + 3600 : angle);*/
+  return TinyGPS::course_to(a->lat / 100000.0f, a->lon / 100000.0f, b->lat / 100000.0f, b->lon / 100000.0f)*10;
 }
 #endif
 
