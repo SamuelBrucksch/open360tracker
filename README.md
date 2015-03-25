@@ -32,6 +32,10 @@ Heres a list of what might be supported at a later stage:
         direct GPS data (NMEA)
         any other protocol that is open 
 
+Current state of the code
+=====
+FRSKY_X and FRSKY_D parsing is working, MFD seems to work. All other protocols are still not tested or uncomplete. I'm still struggling with some minor calculations which i'm currently trying to fix.
+
 Servos
 =====
 Pan servo needs to be connected to pin D9
