@@ -58,8 +58,8 @@ int16_t alt;
 uint8_t sats;
 uint8_t fix;
 
-int8_t latsign;
-int8_t lonsign;
+uint16_t NS;
+uint16_t EW;
 
 //lat lon in decimal degree dd.ddddd
 uint16_t lat_bp;
@@ -72,11 +72,11 @@ int16_t getSats() {
 }
 
 int32_t getTargetLat() {
-  return gpsToLong(latsign, lat_bp, lat_ap);
+  return gpsToLong(NS=='N'?1:-1, lat_bp, lat_ap);
 }
 
 int32_t getTargetLon() {
-  return gpsToLong(lonsign, lon_bp, lon_ap);
+  return gpsToLong(EW=='E'?1:-1, lon_bp, lon_ap);
 }
 
 int16_t getTargetAlt() {
@@ -131,20 +131,10 @@ void processHubPacket(uint8_t id, uint16_t value)
       lat_ap = value;
       break;
     case GPS_LONG_EW_ID:
-      if (value == 'E') {
-        lonsign = 1;
-      } else {
-        lonsign = -1;
-      }
-      hasLon = true;
+      EW = value;
       break;
     case GPS_LAT_NS_ID:
-      if (value == 'N') {
-        latsign = 1;
-      } else {
-        latsign = -1;
-      }
-      hasLat = true;
+      NS = value;
       break;
     case TEMP2:
 #ifdef DIY_GPS
@@ -155,6 +145,10 @@ void processHubPacket(uint8_t id, uint16_t value)
 #endif
       break;
   }
+  if (NS && EW){
+    hasLat = true;
+    hasLon = true;
+    }
 }
 
 bool checkSportPacket(uint8_t *packet)
@@ -217,28 +211,29 @@ void processSportPacket(uint8_t *packet)
           case 0:
             lat_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
             lat_ap = gps_long_lati_a1w;
-            latsign = 1;
-            hasLat = true;
+            NS = 'N';
             break;
           case 1:
             lat_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
             lat_ap = gps_long_lati_a1w;
-            latsign = -1;
-            hasLat = true;
+            NS = 'S';
             break;
           case 2:
             lon_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
             lon_ap = gps_long_lati_a1w;
-            lonsign = 1;
-            hasLon = true;
+            EW = 'E';
             break;
           case 3:
             lon_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
             lon_ap = gps_long_lati_a1w;
-            lonsign = -1;
-            hasLon = true;
+            EW = 'W';
             break;
         }
+        
+        if (NS && EW){
+          hasLat = true;
+          hasLon = true;
+          }
       }
       break;
   }
@@ -281,4 +276,5 @@ void encodeTargetData(uint8_t data) {
   }
 }
 #endif
+
 

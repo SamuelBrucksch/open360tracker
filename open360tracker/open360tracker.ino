@@ -1,4 +1,4 @@
-/* Open Source 360° continuous rotation antenna tracker software
+/* Open Source 360Â° continuous rotation antenna tracker software
  * created by Samuel Brucksch
  *
  * Digital Smooth method from Arduino playground: http://playground.arduino.cc/Main/DigitalSmooth
@@ -15,6 +15,10 @@
 #include "telemetry.h"
 //#include <TinyGPS.h>
 #include <TinyGPS++.h>
+
+#ifndef MFD
+  uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b);
+#endif
 
 #ifdef LCD_DISPLAY
   //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
@@ -47,7 +51,6 @@ long Dk;
 #ifdef LOCAL_GPS
   #include <SoftwareSerial.h>
   SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
-  //TODO change to gps++
   TinyGPS gps;
 #endif
 
@@ -139,6 +142,8 @@ void setup()
   #endif
 }
 
+float GPS_scaleLonDown = 1.0;
+
 void loop()
 {
   //TODO change to telemetry serial port
@@ -155,7 +160,7 @@ void loop()
   #ifdef LCD_DISPLAY
   if (millis() > lcd_time){
     //switch screen every X seconds
-    if (millis() % 10000 > SWITCH_SECONDS*1000){
+    if (millis() % 10000 < 6000){
       //headings, alt, distance, sats
       lcd.setCursor(0,0);
       sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading/10, targetPosition.heading/10, getSats());
@@ -166,12 +171,12 @@ void loop()
     }else{
       //lat, lon
       lcd.setCursor(0,0);
-      lcd.print("Lat:");
-      dtostrf(getTargetLat()/100000.0f, 12, 6, lcd_str);
+      lcd.print("T LAT:");
+      dtostrf(targetPosition.lat/100000.0f, 10, 5, lcd_str);
       lcd.print(lcd_str);
       lcd.setCursor(0,1);
-      lcd.print("Lon:");
-      dtostrf(getTargetLon()/100000.0f, 12, 6, lcd_str);
+      lcd.print("T LON:");
+      dtostrf(targetPosition.lon/100000.0f, 10, 5, lcd_str);
       lcd.print(lcd_str);  
     }
     lcd_time = millis() + 200;
@@ -205,9 +210,10 @@ void loop()
     if (hasLat && hasLon){
       targetPosition.lat = getTargetLat();
       targetPosition.lon = getTargetLon();    
-
-      distance = TinyGPSPlus::distanceBetween(targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f, trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f)/10;
-      targetPosition.heading = TinyGPSPlus::courseTo(trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f, targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f)*10.0f;
+      
+      // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
+      distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));  
+      targetPosition.heading = getHeading(&trackerPosition, &targetPosition);
 
       #ifdef DEBUG
         // TODO correct debug output for lat/lon
@@ -267,6 +273,10 @@ void loop()
         trackerPosition.lat = targetPosition.lat;
         trackerPosition.lon = targetPosition.lon;
         HOME_SET = true;
+        
+         float lat = (float)trackerPosition.lat;
+         float rads       = (abs((float)lat) / 1000000.0) * 0.0174532925;
+         GPS_scaleLonDown = cos(rads);
       #else
       //MFD protocol: set home must be pressed on driver!
       #endif
@@ -398,6 +408,21 @@ void calculatePID(void)
   }
 }
 
+#ifndef MFD
+uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b)
+{
+  // get difference between both points
+  int32_t dlat = a->lat - b->lat;
+  int32_t dlon = a->lon - b->lon;
+  
+  // calculate angle in radians and convert to degrees
+  int16_t angle = (int16_t)(atan2(dlat, dlon) * (1800.0f / PI))%3600;
+  
+  // shift from -180/180 to 0/359
+  return (uint16_t)(angle < 0 ? angle + 3600 : angle);
+}
+#endif
+
 #ifdef LOCAL_GPS
 void initGps(){
   #ifdef MTK
@@ -413,4 +438,3 @@ void initGps(){
   #endif
 }
 #endif
-

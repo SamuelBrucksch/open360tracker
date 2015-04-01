@@ -38,19 +38,19 @@
  */
 #define BAUD 57600
 
-/* #### Tilt servo 0° adjustment ####
+/* #### Tilt servo 0Ã‚Â° adjustment ####
  *
  *  Enter PWM value of Servo for pointing straight forward
  */
 #define TILT_0 1050
 
-/* #### Tilt servo 90° adjustment ####
+/* #### Tilt servo 90Ã‚Â° adjustment ####
  *
- *  Enter PWM value of Servo for pointing 90Â° up
+ *  Enter PWM value of Servo for pointing 90Ãƒâ€šÃ‚Â° up
  */
 #define TILT_90 2000
 
-/* #### Pan servo 0° adjustment ####
+/* #### Pan servo 0Ã‚Â° adjustment ####
  *
  *  Enter PWM value of Servo for not moving
  */
@@ -60,7 +60,7 @@
  *
  * http://magnetic-declination.com/
  * Enter your city and then get the value for Magnetic declination
- * for example [Magnetic declination: 3° 2' EAST]
+ * for example [Magnetic declination: 3Ã‚Â° 2' EAST]
  *
  * now enter the value in the format DEGREE.MINUTE * 10 -> 3.2 * 10 = 32
  *
@@ -72,7 +72,7 @@
  *
  * If you did not mount your compass with the arrow pointing to the front you can set an offset here. 
  *
- * Needs to be multiplied by 10 -> 90° = 900
+ * Needs to be multiplied by 10 -> 90Ã‚Â° = 900
  *
  * Range: 0 ... 3599
  *
@@ -137,20 +137,15 @@
  */
 #define LCD_DISPLAY
 
-/* ### LCD Display Screen switching ###
- *
- * Define the seconds each display should be displayed
- *
- */
-#define SWITCH_SECONDS 5
-
 /* #### Do not edit below this line */
 #if TILT_0 < 1000 || TILT_0 > 2000 || TILT_90 > 2000  || TILT_90 < 1000
   #error "Tilt servo range invalid. Must be between 1000 and 2000."
 #endif
 
 #if OFFSET < 0 || OFFSET > 3599
-  #error "Offset invalid. Must be between 0° and 359°."
+  #error "Offset invalid. Must be between 0Ã‚Â° and 359Ã‚Â°."
 #endif
 
 #endif
+
+
