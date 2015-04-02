@@ -22,16 +22,17 @@ int32_t gpsToLong(int8_t neg, uint16_t bp, uint16_t ap);
 #define BYTESTUFF       0x7d
 #define STUFF_MASK      0x20
 
-#define GPS_ALT_BP_ID      0x01
-#define GPS_ALT_AP_ID      0x09
-#define BARO_ALT_BP_ID     0x10
-#define BARO_ALT_AP_ID     0x21
+#define GPS_ALT_BP_ID     0x01
+#define GPS_ALT_AP_ID     0x09
+#define BARO_ALT_BP_ID    0x10
+#define BARO_ALT_AP_ID    0x21
 #define GPS_LON_BP_ID     0x12
-#define GPS_LAT_BP_ID      0x13
+#define GPS_LAT_BP_ID     0x13
 #define GPS_LON_AP_ID     0x1A
-#define GPS_LAT_AP_ID      0x1B
+#define GPS_LAT_AP_ID     0x1B
 #define GPS_LON_EW_ID     0x22
-#define GPS_LAT_NS_ID      0x23
+#define GPS_LAT_NS_ID     0x23
+#define TEMP2             0x05
 
 #define FRSKY_RX_PACKET_SIZE 11
 uint8_t frskyRxBuffer[FRSKY_RX_PACKET_SIZE];
@@ -46,6 +47,8 @@ enum FrSkyDataState {
 int16_t alt;
 uint16_t NS;
 uint16_t EW;
+uint8_t sats;
+uint8_t fix;
 
 uint16_t lat_bp;
 uint16_t lon_bp;
@@ -53,19 +56,23 @@ uint16_t lat_ap;
 uint16_t lon_ap;
 
 int32_t getTargetLat(){
-  int32_t value = gpsToLong(NS=='N'?1:-1, lat_bp, lat_ap)
+  int32_t value = gpsToLong(NS=='N'?1:-1, lat_bp, lat_ap);
   NS = 0;
   return value;
 }
 
 int32_t getTargetLon(){
-  int32_t value = gpsToLong(EW=='E'?1:-1, lon_bp, lon_ap)
+  int32_t value = gpsToLong(EW=='E'?1:-1, lon_bp, lon_ap);
   EW = 0;
   return value;
 }
 
 int16_t getTargetAlt(){
   return alt;
+}
+
+int16_t getSats() {
+  return (int16_t)sats;
 }
 
 bool stuff;
@@ -183,6 +190,14 @@ void parseTelemHubByte(uint8_t c){
     case GPS_LAT_NS_ID:
       NS = byte0;
       break;
+    case TEMP2:
+#ifdef DIY_GPS
+    sats = byte0 / 10;
+    fix = byte0 % 10;
+#else
+    sats = byte0;
+#endif
+    break;
   }
   if ((NS == 'N' || NS == 'S') && (EW == 'E' || EW == 'W')){
     HAS_FIX = true;

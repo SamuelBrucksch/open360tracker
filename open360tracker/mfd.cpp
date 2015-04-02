@@ -37,7 +37,7 @@ void encodeTargetData(uint8_t c){
     read_checksum = 0;
     calc_checksum = c;
     alt_neg = 1;
-    testMode = 0;
+    TEST_MODE = false;
     return;
   } else if (c == 'H'){
     //altitude
@@ -61,46 +61,46 @@ void encodeTargetData(uint8_t c){
      Serial.print("\nDebug values: [Dist ");Serial.print(mfd_distance);Serial.print("] [Alt ");Serial.print(alt_neg*alt);Serial.print("] [Azimuth ");Serial.print(azimuth);Serial.print("] [Read");Serial.print(read_checksum);Serial.print("] [Calc");Serial.print(calc_checksum);Serial.println("]");
     #endif
     if (calc_checksum == read_checksum){
-      hasAlt = 1;
+      HAS_FIX = true;
     }
     state = 0;
     return;
   } else if (c == 'X'){
     //home set
-    testMode = 0;
-    SETTING_HOME = 1;
+    TEST_MODE = false;
+    SETTING_HOME = true;
     return;
   } else if (c == '#'){
     //no coordinates
-    testMode = 0;
+    TEST_MODE = false;
     return; 
   } else if (c=='@'){
     //connection failure
-    testMode = 0;
+    TEST_MODE = false;
     return;
   } else if (c == 'N'){
     azimuth = 0;
     mfd_distance = 1000;
     alt = 0;
-    testMode = 1;
+    TEST_MODE = true;
     return;
   } else if (c == 'E'){
     azimuth = 90;
     mfd_distance = 1000;
     alt = 1000;
-    testMode = 1;
+    TEST_MODE = true;
     return;
   } else if (c == 'S'){
     azimuth = 180;
     mfd_distance = 0;
     alt = 1000;
-    testMode = 1;
+    TEST_MODE = true;
     return;
   } else if (c == 'W'){
     azimuth = 270;
     mfd_distance = 1000;
     alt = 0;
-    testMode = 1;
+    TEST_MODE = true;
     return;
   }
 
@@ -127,4 +127,3 @@ void encodeTargetData(uint8_t c){
   }
 }
 #endif
-

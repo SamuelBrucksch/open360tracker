@@ -81,38 +81,32 @@
 
 /* #### DIY GPS / Fix Type ####
 *
-* If you use the diy GPS the fix type is transmitted with the satellites on Temp2. It is built like this:
+* If you use the diy GPS the fix type is transmitted with the satellites on Temp2. The value is calculated like this:
 * Num of Sats: 7
 * Fix Type: 3
 * Value = Sats * 10 + Fix Type = 7*10 + 3 = 73
 *
-*If you use the native frsky gps or fixtype is not present comment to disable. It is strongly recommended to use a controller that can provide the fix type.
-*
+* If you use the native frsky gps or fixtype is not present comment to disable.
 */
 #define DIY_GPS
 
 #ifndef MFD
 /* #### Ground GPS ####
  *
+ * !!!!!!NOT SUPPORTED YET!!!!!!!
+ *
  * needed for ground gps so home does not need to be manually set
- *
- * uncomment #define LOCAL_GPS to disable local GPS
- * does not work when in MFD mode
- */
-//#define LOCAL_GPS
-#define GPS_BAUDRATE 38400
-
-#endif
-
-/* #### Local GPS type ####
- *
- * Needed for GPS configuration
  *
  * Types:
  * MTK, UBX
  * UBX not implemented yet
+ *
+ * does not work when in MFD mode
  */
+//#define LOCAL_GPS
 #define MTK
+#define GPS_BAUDRATE 38400
+#endif
 
 /* #### Tracker Setup ####
  * 

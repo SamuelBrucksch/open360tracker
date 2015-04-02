@@ -68,7 +68,7 @@ uint16_t lat_ap;
 uint16_t lon_ap;
 
 int16_t getSats() {
-  return sats;
+  return (int16_t)sats;
 }
 
 int32_t getTargetLat(){

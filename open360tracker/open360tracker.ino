@@ -158,7 +158,11 @@ void loop()
     if (millis() % 10000 < 6000){
       //headings, alt, distance, sats
       lcd.setCursor(0,0);
-      sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading/10, targetPosition.heading/10, getSats());
+      #ifndef MFD
+        sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading/10, targetPosition.heading/10, getSats());
+      #else
+        sprintf(lcd_str, "H:%03u A:%03u", trackerPosition.heading/10, targetPosition.heading/10);
+      #endif
       lcd.print(lcd_str);
       lcd.setCursor(0,1);
       sprintf(lcd_str, "A:%05d D:%05u", targetPosition.alt, distance);
@@ -294,40 +298,52 @@ void loop()
     }
     
     if (!HOME_SET && TEST_MODE && NEW_HEADING){
-        distance = getDistance();
-        targetPosition.alt = getTargetAlt();
-        targetPosition.heading = getAzimuth()*10;
+      distance = getDistance();
+      targetPosition.alt = getTargetAlt();
+      targetPosition.heading = getAzimuth()*10;
         
-        getError();
-        calculatePID();
-        SET_PAN_SERVO_SPEED(PWMOutput);
-        calcTilt(); 
-        NEW_HEADING = false;
+      getError();
+      calculatePID();
+      SET_PAN_SERVO_SPEED(PWMOutput);
+      calcTilt(); 
+      NEW_HEADING = false;
+    } 
+    if (HOME_SET && HAS_FIX && NEW_HEADING && !TEST_MODE){
+      targetPosition.alt = getTargetAlt();
+      targetPosition.heading = getAzimuth() * 10;
+      distance = getDistance();
+      
+      getError();
+      calculatePID();
+      SET_PAN_SERVO_SPEED(PWMOutput);
+      calcTilt(); 
+      NEW_HEADING = false;
     }
   #endif
-  
-  #if (START_TRACKING_DISTANCE > 0)
-    //Only track if tracking process started.
-    if(!TRACKING_STARTED) {
-      //if plane is START_TRACKING_DISTANCE meter away from tracker start tracking process.
-      if (START_TRACKING_DISTANCE <= distance && HOME_SET){
-        TRACKING_STARTED = true;
-      }
-    } else {
-  #else
-    //Only track if home ist set.
-    if (HOME_SET){
-  #endif
-      digitalWrite(LED_PIN, HIGH);
-      // only update pan value if there is new data
-      if( NEW_HEADING ) {
-        getError();       // Get position error
-        calculatePID();   // Calculate the PID output from the error
-        SET_PAN_SERVO_SPEED(PWMOutput);
-        NEW_HEADING = false;
-        calcTilt(); 
-      }
-    } 
+  #ifndef MFD
+    #if (START_TRACKING_DISTANCE > 0)
+      //Only track if tracking process started.
+      if(!TRACKING_STARTED) {
+        //if plane is START_TRACKING_DISTANCE meter away from tracker start tracking process.
+        if (START_TRACKING_DISTANCE <= distance && HOME_SET){
+          TRACKING_STARTED = true;
+        }
+      } else {
+    #else
+      //Only track if home ist set.
+      if (HOME_SET){
+    #endif
+        digitalWrite(LED_PIN, HIGH);
+        // only update pan value if there is new data
+        if( NEW_HEADING ) {
+          getError();       // Get position error
+          calculatePID();   // Calculate the PID output from the error
+          SET_PAN_SERVO_SPEED(PWMOutput);
+          NEW_HEADING = false;
+          calcTilt(); 
+        }
+      } 
+    #endif
 }
 
 //Tilt angle alpha = atan(alt/dist) 
