@@ -66,7 +66,9 @@ void setup()
     lcd.home();
     lcd.print(" open360tracker ");
     lcd.setCursor ( 0, 1 );
-    lcd.print("   version 0.1  ");
+    lcd.print("   version ");
+    lcd.print(FMW_VERSION);
+    lcd.print("  ");
   #endif
   
   HAS_ALT = false;

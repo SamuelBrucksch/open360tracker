@@ -7,6 +7,8 @@
  */
 #include <inttypes.h>
 
+#define FMW_VERSION "0.1"
+
 #define HOME_BUTTON 5
 #define CALIB_BUTTON 6
 #define LED_PIN 13
