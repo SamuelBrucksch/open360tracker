@@ -227,3 +227,4 @@ int getHeading(){
 
   return (int) ((heading * 1800.0/M_PI) + DECLINATION + OFFSET) % 3600;
 }
+

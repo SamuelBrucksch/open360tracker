@@ -1,4 +1,4 @@
-/* Open Source 360Â° continuous rotation antenna tracker software
+/* Open Source 360° continuous rotation antenna tracker software
  * created by Samuel Brucksch
  *
  * Digital Smooth method from Arduino playground: http://playground.arduino.cc/Main/DigitalSmooth
@@ -13,29 +13,13 @@
 #include "servos.h"
 #include "inttypes.h"
 #include "telemetry.h"
-//#include <TinyGPS.h>
-#include <TinyGPS++.h>
-
-#ifndef MFD
-  uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b);
-#endif
-
-#ifdef LCD_DISPLAY
-  //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
-  #include <LiquidCrystal_I2C.h>
-  LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
-  char lcd_str[24];
-  long lcd_time;
-  boolean screen2 = false;
-  int screenCounter = 0;
-#endif
-
-unsigned long time;
-unsigned long calib_timer;
 
 void calcTilt();
 void getError();
 void calculatePID();
+
+unsigned long time;
+unsigned long calib_timer;
 
 //PID stuff
 long Error[11];
@@ -44,15 +28,6 @@ long PID;
 uint8_t Divider = 15;
 int PWMOutput;
 long Dk;
-#ifdef LOCAL_GPS
-  void initGps();
-#endif
-
-#ifdef LOCAL_GPS
-  #include <SoftwareSerial.h>
-  SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
-  TinyGPS gps;
-#endif
 
 //distance in meter
 uint16_t distance;
@@ -60,6 +35,27 @@ uint16_t distance;
 geoCoordinate_t targetPosition;
 // The tracker position (lat/lon)
 geoCoordinate_t trackerPosition;
+
+//only use tinygps when local gps is used
+#ifdef LOCAL_GPS
+  #include <TinyGPS.h>
+  #include <SoftwareSerial.h>
+  SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
+  TinyGPS gps;
+  void initGps();
+#endif
+
+#ifndef MFD
+  uint16_t getTargetHeading(geoCoordinate_t *a, geoCoordinate_t *b);
+#endif
+
+#ifdef LCD_DISPLAY
+  //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
+  #include <LiquidCrystal_I2C.h>
+  LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
+  char lcd_str[24];
+  long lcd_time;
+#endif
 
 void setup()
 {
@@ -73,16 +69,15 @@ void setup()
     lcd.print("   version 0.1  ");
   #endif
   
-  hasLat = false;
-  hasLon = false;
-  hasAlt = false;
+  HAS_ALT = false;
+  HAS_FIX = false;
   HOME_SET = false;
   SETTING_HOME = false;
   PREVIOUS_STATE = true;
   TRACKING_STARTED = false;
   CURRENT_STATE = true;
-  gotNewHeading = false;
-  testMode = false;
+  NEW_HEADING = false;
+  TEST_MODE = false;
 
   Serial.begin(BAUD);
   
@@ -142,8 +137,6 @@ void setup()
   #endif
 }
 
-float GPS_scaleLonDown = 1.0;
-
 void loop()
 {
   //TODO change to telemetry serial port
@@ -183,7 +176,7 @@ void loop()
   }
   #endif
 
-  if (hasAlt){
+  if (HAS_ALT){
     targetPosition.alt = getTargetAlt();
     
     // mfd has all the data at once, so we do not have to wait for valid lat/lon
@@ -202,29 +195,27 @@ void loop()
       #endif
     #endif
     
-    hasAlt = false;
+    HAS_ALT = false;
   }
   
   #ifndef MFD
     //only calculate distance and heading when we have valid telemetry data
-    if (hasLat && hasLon){
+    if (HAS_FIX){
       targetPosition.lat = getTargetLat();
       targetPosition.lon = getTargetLon();    
       
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
       distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));  
-      targetPosition.heading = getHeading(&trackerPosition, &targetPosition);
+      targetPosition.heading = getTargetHeading(&trackerPosition, &targetPosition);
 
       #ifdef DEBUG
-        // TODO correct debug output for lat/lon
         Serial.print("Lat: "); Serial.print(targetPosition.lat); 
         Serial.print(" Lon: "); Serial.print(targetPosition.lon);
         Serial.print(" Distance: "); Serial.print(distance);
         Serial.print(" Heading: "); Serial.print(trackerPosition.heading/10);
         Serial.print(" Target Heading: "); Serial.println(targetPosition.heading/10);
       #endif
-      hasLat = false;
-      hasLon = false;
+      HAS_FIX = false;
     }
   #endif
   
@@ -233,10 +224,7 @@ void loop()
   if (millis() > time){
     time = millis() + 14;
     trackerPosition.heading = getHeading();
-    gotNewHeading = true;
-    #ifdef DEBUG
-      //Serial.print("Current heading: ");Serial.println(trackerPosition.heading/10);
-    #endif
+    NEW_HEADING = true;
   }
   
   CURRENT_STATE = digitalRead(CALIB_BUTTON);
@@ -273,10 +261,6 @@ void loop()
         trackerPosition.lat = targetPosition.lat;
         trackerPosition.lon = targetPosition.lon;
         HOME_SET = true;
-        
-         float lat = (float)trackerPosition.lat;
-         float rads       = (abs((float)lat) / 1000000.0) * 0.0174532925;
-         GPS_scaleLonDown = cos(rads);
       #else
       //MFD protocol: set home must be pressed on driver!
       #endif
@@ -307,7 +291,7 @@ void loop()
        SETTING_HOME = 0;
     }
     
-    if (!HOME_SET && testMode && gotNewHeading){
+    if (!HOME_SET && TEST_MODE && NEW_HEADING){
         distance = getDistance();
         targetPosition.alt = getTargetAlt();
         targetPosition.heading = getAzimuth()*10;
@@ -316,7 +300,7 @@ void loop()
         calculatePID();
         SET_PAN_SERVO_SPEED(PWMOutput);
         calcTilt(); 
-        gotNewHeading = false;
+        NEW_HEADING = false;
     }
   #endif
   
@@ -334,20 +318,18 @@ void loop()
   #endif
       digitalWrite(LED_PIN, HIGH);
       // only update pan value if there is new data
-      if( gotNewHeading ) {
+      if( NEW_HEADING ) {
         getError();       // Get position error
         calculatePID();   // Calculate the PID output from the error
         SET_PAN_SERVO_SPEED(PWMOutput);
-        gotNewHeading = false;
-        
+        NEW_HEADING = false;
         calcTilt(); 
       }
     } 
 }
 
 //Tilt angle alpha = atan(alt/dist) 
-void calcTilt()
-{
+void calcTilt(){
   uint16_t alpha = 0;
   //prevent division by 0
   if (distance == 0){
@@ -409,7 +391,7 @@ void calculatePID(void)
 }
 
 #ifndef MFD
-uint16_t getHeading(geoCoordinate_t *a, geoCoordinate_t *b)
+uint16_t getTargetHeading(geoCoordinate_t *a, geoCoordinate_t *b)
 {
   // get difference between both points
   int32_t dlat = a->lat - b->lat;

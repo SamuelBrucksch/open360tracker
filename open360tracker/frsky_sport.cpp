@@ -89,66 +89,53 @@ void processHubPacket(uint8_t id, uint16_t value)
     return;
 
   switch (id) {
-    case BARO_ALT_AP_ID:
+  case BARO_ALT_AP_ID:
 #ifdef VARIO
-      alt = (int32_t)100 * value;
+    alt = (int32_t)100 * value;
 #endif
-      break;
-    case GPS_ALT_BP_ID:
+    break;
+  case GPS_ALT_BP_ID:
 #ifndef VARIO
-      alt = value;
-      hasAlt = true;
+    alt = value;
+    HAS_ALT = true;
 #endif;
-      break;
-    case GPS_ALT_AP_ID:
+    break;
+  case GPS_ALT_AP_ID:
 #ifndef VARIO
-      //alt = value;
-      //hasAlt = true;
+    alt = value;
+    HAS_ALT = true;
 #endif;
-      break;
-    case GPS_LONG_BP_ID:
-      //if we have values we should have a sat fix here
-      if (value) {
-        hasFix = true;
-      } else {
-        hasFix = false;
-      }
-      lon_bp = value;
-      break;
-    case GPS_LONG_AP_ID:
-      lon_ap = value;
-      break;
-    case GPS_LAT_BP_ID:
-      //if we have values we should have a sat fix here
-      if (value) {
-        hasFix = true;
-      } else {
-        hasFix = false;
-      }
-      lat_bp = value;
-      break;
-    case GPS_LAT_AP_ID:
-      lat_ap = value;
-      break;
-    case GPS_LONG_EW_ID:
-      EW = value;
-      break;
-    case GPS_LAT_NS_ID:
-      NS = value;
-      break;
-    case TEMP2:
+    break;
+  case GPS_LONG_BP_ID:
+    lon_bp = value;
+    break;
+  case GPS_LONG_AP_ID:
+    lon_ap = value;
+    break;
+  case GPS_LAT_BP_ID:
+    lat_bp = value;
+    break;
+  case GPS_LAT_AP_ID:
+    lat_ap = value;
+    break;
+  case GPS_LONG_EW_ID:
+    EW = value;
+    break;
+  case GPS_LAT_NS_ID:
+    NS = value;
+    break;
+  case TEMP2:
 #ifdef DIY_GPS
-      sats = value / 10;
-      fix = value % 10;
+    sats = value / 10;
+    fix = value % 10;
 #else
-      sats = value;
+    sats = value;
 #endif
-      break;
+    break;
   }
   if (NS && EW){
-    hasLat = true;
-    hasLon = true;
-    }
+    HAS_FIX = true;
+  }
 }
 
 bool checkSportPacket(uint8_t *packet)
@@ -180,62 +167,61 @@ void processSportPacket(uint8_t *packet)
 
   switch (prim)
   {
-    case DATA_FRAME:
-      if ((appId >> 8) == 0) {
-        // The old FrSky IDs
-        uint8_t  id = (uint8_t)appId;
-        uint16_t value = HUB_DATA_U16(packet);
-        processHubPacket(id, value);
+  case DATA_FRAME:
+    if ((appId >> 8) == 0) {
+      // The old FrSky IDs
+      uint8_t  id = (uint8_t)appId;
+      uint16_t value = HUB_DATA_U16(packet);
+      processHubPacket(id, value);
+    }
+    else if (appId >= T2_FIRST_ID && appId <= T2_LAST_ID) {
+      sats = SPORT_DATA_S32(packet) / 10;
+      fix = SPORT_DATA_S32(packet) % 10;
+    }
+    else if (appId >= GPS_SPEED_FIRST_ID && appId <= GPS_SPEED_LAST_ID) {
+      //frskyData.hub.gpsSpeed_bp = (uint16_t) (SPORT_DATA_U32(packet) / 1000);
+    }
+    else if (appId >= GPS_COURS_FIRST_ID && appId <= GPS_COURS_LAST_ID) {
+      //uint32_t course = SPORT_DATA_U32(packet)/100;
+    }
+    else if (appId >= GPS_ALT_FIRST_ID && appId <= GPS_ALT_LAST_ID) {
+      alt = SPORT_DATA_S32(packet)/100;
+      HAS_ALT = true;
+    }
+    else if (appId >= GPS_LONG_LATI_FIRST_ID && appId <= GPS_LONG_LATI_LAST_ID) {
+      uint32_t gps_long_lati_data = SPORT_DATA_U32(packet);
+      uint32_t gps_long_lati_b1w, gps_long_lati_a1w;
+      gps_long_lati_b1w = (gps_long_lati_data & 0x3fffffff) / 10000;
+      gps_long_lati_a1w = (gps_long_lati_data & 0x3fffffff) % 10000;
+
+      switch ((gps_long_lati_data & 0xc0000000) >> 30) {
+      case 0:
+        lat_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
+        lat_ap = gps_long_lati_a1w;
+        NS = 'N';
+        break;
+      case 1:
+        lat_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
+        lat_ap = gps_long_lati_a1w;
+        NS = 'S';
+        break;
+      case 2:
+        lon_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
+        lon_ap = gps_long_lati_a1w;
+        EW = 'E';
+        break;
+      case 3:
+        lon_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
+        lon_ap = gps_long_lati_a1w;
+        EW = 'W';
+        break;
       }
-      else if (appId >= T2_FIRST_ID && appId <= T2_LAST_ID) {
-        sats = SPORT_DATA_S32(packet) / 10;
-        fix = SPORT_DATA_S32(packet) % 10;
+
+      if (NS && EW){
+        HAS_FIX = true;
       }
-      else if (appId >= GPS_SPEED_FIRST_ID && appId <= GPS_SPEED_LAST_ID) {
-        //frskyData.hub.gpsSpeed_bp = (uint16_t) (SPORT_DATA_U32(packet) / 1000);
-      }
-      else if (appId >= GPS_COURS_FIRST_ID && appId <= GPS_COURS_LAST_ID) {
-        //uint32_t course = SPORT_DATA_U32(packet)/100;
-      }
-      else if (appId >= GPS_ALT_FIRST_ID && appId <= GPS_ALT_LAST_ID) {
-        alt = SPORT_DATA_S32(packet)/100;
-        hasAlt = true;
-      }
-      else if (appId >= GPS_LONG_LATI_FIRST_ID && appId <= GPS_LONG_LATI_LAST_ID) {
-        uint32_t gps_long_lati_data = SPORT_DATA_U32(packet);
-        uint32_t gps_long_lati_b1w, gps_long_lati_a1w;
-        gps_long_lati_b1w = (gps_long_lati_data & 0x3fffffff) / 10000;
-        gps_long_lati_a1w = (gps_long_lati_data & 0x3fffffff) % 10000;
-        
-        switch ((gps_long_lati_data & 0xc0000000) >> 30) {
-          case 0:
-            lat_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
-            lat_ap = gps_long_lati_a1w;
-            NS = 'N';
-            break;
-          case 1:
-            lat_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
-            lat_ap = gps_long_lati_a1w;
-            NS = 'S';
-            break;
-          case 2:
-            lon_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
-            lon_ap = gps_long_lati_a1w;
-            EW = 'E';
-            break;
-          case 3:
-            lon_bp = (gps_long_lati_b1w / 60 * 100) + (gps_long_lati_b1w % 60);
-            lon_ap = gps_long_lati_a1w;
-            EW = 'W';
-            break;
-        }
-        
-        if (NS && EW){
-          hasLat = true;
-          hasLon = true;
-          }
-      }
-      break;
+    }
+    break;
   }
 }
 
@@ -256,17 +242,17 @@ void encodeTargetData(uint8_t data) {
   }
   else {
     switch (dataState) {
-      case STATE_DATA_XOR:
-        frskyRxBuffer[numPktBytes++] = data ^ STUFF_MASK;
-        dataState = STATE_DATA_IN_FRAME;
-        break;
+    case STATE_DATA_XOR:
+      frskyRxBuffer[numPktBytes++] = data ^ STUFF_MASK;
+      dataState = STATE_DATA_IN_FRAME;
+      break;
 
-      case STATE_DATA_IN_FRAME:
-        if (data == BYTESTUFF)
-          dataState = STATE_DATA_XOR; // XOR next byte
-        else
-          frskyRxBuffer[numPktBytes++] = data;
-        break;
+    case STATE_DATA_IN_FRAME:
+      if (data == BYTESTUFF)
+        dataState = STATE_DATA_XOR; // XOR next byte
+      else
+        frskyRxBuffer[numPktBytes++] = data;
+      break;
     }
   }
 
@@ -276,5 +262,3 @@ void encodeTargetData(uint8_t data) {
   }
 }
 #endif
-
-

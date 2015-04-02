@@ -14,11 +14,11 @@
 #define HMC58X3_R_CONFA 0
 #define HMC58X3_R_CONFB 1
 #define HMC58X3_R_MODE 2
-#define HMC58X3_X_SELF_TEST_GAUSS (+1.16)                       //!< X axis level when bias current is applied.
+#define HMC58X3_X_SELF_TEST_GAUSS (+1.16)   //!< X axis level when bias current is applied.
 #define HMC58X3_Y_SELF_TEST_GAUSS (+1.16)   //!< Y axis level when bias current is applied.
-#define HMC58X3_Z_SELF_TEST_GAUSS (+1.08)                       //!< Y axis level when bias current is applied.
-#define SELF_TEST_LOW_LIMIT  (243.0/390.0)   //!< Low limit when gain is 5.
-#define SELF_TEST_HIGH_LIMIT (575.0/390.0)   //!< High limit when gain is 5.
+#define HMC58X3_Z_SELF_TEST_GAUSS (+1.08)   //!< Y axis level when bias current is applied.
+#define SELF_TEST_LOW_LIMIT  (243.0/390.0)  //!< Low limit when gain is 5.
+#define SELF_TEST_HIGH_LIMIT (575.0/390.0)  //!< High limit when gain is 5.
 #define HMC_POS_BIAS 1
 #define HMC_NEG_BIAS 2
 
@@ -33,4 +33,5 @@ void readCalibration();
 void calibrate_compass(void);
 
 #endif
+
 

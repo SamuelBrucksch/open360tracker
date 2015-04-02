@@ -45,8 +45,8 @@ enum FrSkyDataState {
 
 
 int16_t alt;
-int8_t latsign;
-int8_t lonsign;
+uint16_t NS;
+uint16_t EW;
 
 uint16_t lat_bp;
 uint16_t lon_bp;
@@ -159,7 +159,7 @@ void parseTelemHubByte(uint8_t c){
     case GPS_ALT_BP_ID:
       #ifndef VARIO
         alt = int16_t((byte0 << 8) + c);
-        hasAlt = true;
+        HAS_ALT = true;
       #endif
       break;
     case GPS_ALT_AP_ID:
@@ -170,7 +170,7 @@ void parseTelemHubByte(uint8_t c){
     case BARO_ALT_BP_ID:
       #ifdef VARIO
         alt = (int32_t)(byte0 << 8) + c) * 100;
-        hasAlt = true;
+        HAS_ALT = true;
       #endif
       break;
     case BARO_ALT_AP_ID:
@@ -179,45 +179,26 @@ void parseTelemHubByte(uint8_t c){
       #endif
       break;
     case GPS_LON_BP_ID:
-      //if we have values we should have a sat fix here
-      if (byte0 || c){
-        hasFix = true;
-      } else {
-        hasFix = false; 
-      }
       lon_bp = (c << 8) + byte0;
       break;
     case GPS_LON_AP_ID:
       lon_ap = (c << 8) + byte0;
       break;
     case GPS_LAT_BP_ID:
-      //if we have values we should have a sat fix here
-      if (byte0 || c){
-        hasFix = true;
-      } else {
-        hasFix = false; 
-      }
       lat_bp = (c << 8) + byte0;
       break;
     case GPS_LAT_AP_ID:
       lat_ap = (c << 8) + byte0;
       break;
     case GPS_LON_EW_ID:
-      if (byte0 == 'E'){
-        lonsign = 1;
-      } else {
-        lonsign = -1;
-      }
-      hasLon = true;
+      EW = byte0;
       break;
     case GPS_LAT_NS_ID:
-      if (byte0 == 'N'){
-        latsign = 1;
-      } else {
-        latsign = -1;
-      }
-      hasLat = true;
+      NS = byte0;
       break;
+  }
+  if (NS && EW){
+    HAS_FIX = true;
   }
 }
 
@@ -228,3 +209,4 @@ void parseTelemHubByte(uint8_t c){
   }
 #endif
 #endif
+
