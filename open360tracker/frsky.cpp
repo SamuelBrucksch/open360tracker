@@ -43,7 +43,6 @@ enum FrSkyDataState {
   STATE_DATA_XOR,
 };
 
-
 int16_t alt;
 uint16_t NS;
 uint16_t EW;
@@ -54,11 +53,15 @@ uint16_t lat_ap;
 uint16_t lon_ap;
 
 int32_t getTargetLat(){
-  return gpsToLong(latsign, lat_bp, lat_ap);
+  int32_t value = gpsToLong(NS=='N'?1:-1, lat_bp, lat_ap)
+  NS = 0;
+  return value;
 }
 
 int32_t getTargetLon(){
-  return gpsToLong(lonsign, lon_bp, lon_ap);
+  int32_t value = gpsToLong(EW=='E'?1:-1, lon_bp, lon_ap)
+  EW = 0;
+  return value;
 }
 
 int16_t getTargetAlt(){
@@ -162,22 +165,6 @@ void parseTelemHubByte(uint8_t c){
         HAS_ALT = true;
       #endif
       break;
-    case GPS_ALT_AP_ID:
-      #ifndef VARIO
-      //not really needed as we only use int as alt
-      #endif
-      break;
-    case BARO_ALT_BP_ID:
-      #ifdef VARIO
-        alt = (int32_t)(byte0 << 8) + c) * 100;
-        HAS_ALT = true;
-      #endif
-      break;
-    case BARO_ALT_AP_ID:
-      #ifdef VARIO
-      //not really needed as we only use int as alt
-      #endif
-      break;
     case GPS_LON_BP_ID:
       lon_bp = (c << 8) + byte0;
       break;
@@ -197,11 +184,10 @@ void parseTelemHubByte(uint8_t c){
       NS = byte0;
       break;
   }
-  if (NS && EW){
+  if ((NS == 'N' || NS == 'S') && (EW == 'E' || EW == 'W')){
     HAS_FIX = true;
   }
 }
-
 
 #if defined(VARIO)
   void evalVario(int16_t altitude_bp, uint16_t altitude_ap){

@@ -121,13 +121,6 @@
  */
 #define START_TRACKING_DISTANCE 0
 
-/* ### Vario Altitude ###
- *
- * Uncomment to use baro alt instead of GPS alt. Only works if Vario is present
- *
- */
-//#define VARIO
-
 /* ### LCD Display ###
  *
  * Uncomment to display data on LCD Display

@@ -71,12 +71,16 @@ int16_t getSats() {
   return sats;
 }
 
-int32_t getTargetLat() {
-  return gpsToLong(NS=='N'?1:-1, lat_bp, lat_ap);
+int32_t getTargetLat(){
+  int32_t value = gpsToLong(NS=='N'?1:-1, lat_bp, lat_ap);
+  NS = 0;
+  return value;
 }
 
-int32_t getTargetLon() {
-  return gpsToLong(EW=='E'?1:-1, lon_bp, lon_ap);
+int32_t getTargetLon(){
+  int32_t value = gpsToLong(EW=='E'?1:-1, lon_bp, lon_ap);
+  EW = 0;
+  return value;
 }
 
 int16_t getTargetAlt() {
@@ -87,24 +91,10 @@ void processHubPacket(uint8_t id, uint16_t value)
 {
   if (id > FRSKY_LAST_ID)
     return;
-
   switch (id) {
-  case BARO_ALT_AP_ID:
-#ifdef VARIO
-    alt = (int32_t)100 * value;
-#endif
-    break;
   case GPS_ALT_BP_ID:
-#ifndef VARIO
     alt = value;
     HAS_ALT = true;
-#endif;
-    break;
-  case GPS_ALT_AP_ID:
-#ifndef VARIO
-    alt = value;
-    HAS_ALT = true;
-#endif;
     break;
   case GPS_LONG_BP_ID:
     lon_bp = value;
@@ -133,7 +123,7 @@ void processHubPacket(uint8_t id, uint16_t value)
 #endif
     break;
   }
-  if (NS && EW){
+  if ((NS == 'N' || NS == 'S') && (EW == 'E' || EW == 'W')){
     HAS_FIX = true;
   }
 }
@@ -158,7 +148,6 @@ bool checkSportPacket(uint8_t *packet)
 
 void processSportPacket(uint8_t *packet)
 {
-  /* uint8_t  dataId = packet[0]; */
   uint8_t  prim   = packet[1];
   uint16_t appId  = *((uint16_t *)(packet + 2));
 
@@ -175,8 +164,14 @@ void processSportPacket(uint8_t *packet)
       processHubPacket(id, value);
     }
     else if (appId >= T2_FIRST_ID && appId <= T2_LAST_ID) {
-      sats = SPORT_DATA_S32(packet) / 10;
-      fix = SPORT_DATA_S32(packet) % 10;
+      #ifdef DIY_GPS
+        sats = SPORT_DATA_S32(packet) / 10;
+        fix = SPORT_DATA_S32(packet) % 10;
+      #endif
+      #ifndef DIY_GPS
+        //we assume that other systems just send the sats over temp2 and fix over temp1
+        sats = SPORT_DATA_S32(packet);
+      #endif
     }
     else if (appId >= GPS_SPEED_FIRST_ID && appId <= GPS_SPEED_LAST_ID) {
       //frskyData.hub.gpsSpeed_bp = (uint16_t) (SPORT_DATA_U32(packet) / 1000);
@@ -216,8 +211,7 @@ void processSportPacket(uint8_t *packet)
         EW = 'W';
         break;
       }
-
-      if (NS && EW){
+      if ((NS == 'N' || NS == 'S') && (EW == 'E' || EW == 'W')){
         HAS_FIX = true;
       }
     }
