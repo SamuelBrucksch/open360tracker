@@ -37,12 +37,11 @@ This code is written by Samuel Brucksch
  
  Checksum is everything XORed from "$" to "temperature".
 */
-
 #include "config.h"
 #ifdef RVOSD
+
 #include "telemetry.h"
 #include "frsky_common.h"
-#include "uart.h"
 
 unsigned char buffer_index = 0;
 unsigned char commacount = 0;
@@ -67,6 +66,7 @@ uint16_t lon_ap;
 int32_t lat = 0;
 int32_t lon = 0;
 int16_t altitude = 0;
+uint8_t sats = 0;
 
 int32_t getTargetLat(){
   return lat;
@@ -80,18 +80,20 @@ int16_t getTargetAlt(){
   return altitude;
 }
 
+int16_t getSats(){
+  return (int16_t)sats;
+}
+
 void encodeTargetData(uint8_t c){
   //only enable this to debug telemtry data. Else debug output will be flooded with rvosd protocol output.
   #ifdef DEBUG
-    //uart_puts(c);
+    //Serial.write(c);
   #endif
-  
   
   //wait for frame to start
   if(c != '$' && buffer_index == 0){
     return;
   }
-
   if (c == '$'){
     //frame started
     checksum = false;
@@ -128,18 +130,15 @@ void encodeTargetData(uint8_t c){
       checksum_read += c;
     }
   }
-
   //valid data?
   if (commacount == 0 && buffer_index > 1){
     if (buffer[1] != '1'){
       //no valid data
       buffer_index = 0;
-
       //TODO warning (beeper??)
       return;
     }
   }
-
   if (c == ','){
     // first value after comma
     commacount++;
@@ -196,10 +195,10 @@ void encodeTargetData(uint8_t c){
       break;
     case 23:
       // Sats 
+      sats = 0;
       break;
     } 
-  } 
-  else{
+  } else {
     // values behind first value
     switch(commacount){
     case 3:
@@ -261,6 +260,8 @@ void encodeTargetData(uint8_t c){
       break;
     case 23:
       // Sats 
+      sats *= 10;
+      sats += (c - '0');
       break;
     } 
   }
@@ -269,7 +270,7 @@ void encodeTargetData(uint8_t c){
     //end of line -> checksum is available
     if (checksum_calculation != checksum_read){
         #ifdef DEBUG
-          uart_puts("RVOSD: Checksum wrong. \n");
+          Serial.println("RVOSD: Checksum wrong.");
         #endif
         buffer_index = 0;
         return;
@@ -281,7 +282,7 @@ void encodeTargetData(uint8_t c){
   }
 
   #ifdef DEBUG
-    uart_puts("RVOSD: Data valid and ready. \n");
+    Serial.println("RVOSD: Data valid and ready.");
   #endif
 
 
@@ -290,9 +291,8 @@ void encodeTargetData(uint8_t c){
   altitude = alt*altsign;
 
   // data is ready
-  hasAlt = true;
-  hasLat = true;
-  hasLon = true;
+  HAS_FIX = true;
+  HAS_ALT = true;
 }
 #endif
 
