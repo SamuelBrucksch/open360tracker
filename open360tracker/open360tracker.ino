@@ -215,13 +215,13 @@ void loop()
       distance = TinyGPS::distance_between(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f);
       targetPosition.heading = TinyGPS::course_to(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f)*10.0f;
 
-      //#ifdef DEBUG
+      #ifdef DEBUG
         Serial.print("Lat: "); Serial.print(targetPosition.lat); 
         Serial.print(" Lon: "); Serial.print(targetPosition.lon);
         Serial.print(" Distance: "); Serial.print(distance);
         Serial.print(" Heading: "); Serial.print(trackerPosition.heading/10);
         Serial.print(" Target Heading: "); Serial.println(targetPosition.heading/10);
-      //#endif
+      #endif
       HAS_FIX = false;
     }
   #endif
