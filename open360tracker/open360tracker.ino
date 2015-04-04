@@ -355,12 +355,11 @@ void calcTilt(){
     alpha = 90;
   }
   else {
-    alpha = toDeg(atan((targetPosition.alt - trackerPosition.alt)/distance));
+    alpha = toDeg(atan(float(targetPosition.alt - trackerPosition.alt)/distance));
   }
   //just for current tests, later we will have negative tilt as well
   if (alpha < 0)
     alpha = 0;
-  
   SET_TILT_SERVO_SPEED(map(alpha, 0, 90, TILT_0, TILT_90));
 }
 
