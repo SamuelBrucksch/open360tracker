@@ -360,6 +360,8 @@ void calcTilt(){
   //just for current tests, later we will have negative tilt as well
   if (alpha < 0)
     alpha = 0;
+  else if (alpha > 90)
+    alpha = 90;  
   SET_TILT_SERVO_SPEED(map(alpha, 0, 90, TILT_0, TILT_90));
 }
 

@@ -43,7 +43,7 @@
  *
  *  Enter PWM value of Servo for pointing straight forward
  */
-#define TILT_0 1050
+#define TILT_0 1000
 
 /* #### Tilt servo 90° adjustment ####
  *
@@ -55,7 +55,7 @@
  *
  *  Enter PWM value of Servo for not moving
  */
-#define PAN_0 1470
+#define PAN_0 1485
 
 /* #### Compass declination ####
  *
