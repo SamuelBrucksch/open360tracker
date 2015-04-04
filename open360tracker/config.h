@@ -25,6 +25,7 @@
  *  RVOSD
  *  GPS_TELEMETRY -> NMEA/Ublox protocol over serial transmission system (e.g. 3DR radio)
  *  MFD -> MFD protocol will not work with local GPS!!!!
+ *  MAVLINK
  */
 #define FRSKY_X
 

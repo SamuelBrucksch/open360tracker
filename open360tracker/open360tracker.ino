@@ -165,7 +165,7 @@ void loop()
       #endif
       lcd.print(lcd_str);
       lcd.setCursor(0,1);
-      sprintf(lcd_str, "A:%05d D:%05u", targetPosition.alt, distance);
+      sprintf(lcd_str, "A:%05d D:%05u ", targetPosition.alt, distance);
       lcd.print(lcd_str);
     }else{
       //lat, lon
@@ -211,17 +211,17 @@ void loop()
       targetPosition.lon = getTargetLon();    
       
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
-      distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));  
-      //targetPosition.heading = getTargetHeading(&trackerPosition, &targetPosition);
+      //distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));  
+      distance = TinyGPS::distance_between(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f);
       targetPosition.heading = TinyGPS::course_to(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f)*10.0f;
 
-      #ifdef DEBUG
+      //#ifdef DEBUG
         Serial.print("Lat: "); Serial.print(targetPosition.lat); 
         Serial.print(" Lon: "); Serial.print(targetPosition.lon);
         Serial.print(" Distance: "); Serial.print(distance);
         Serial.print(" Heading: "); Serial.print(trackerPosition.heading/10);
         Serial.print(" Target Heading: "); Serial.println(targetPosition.heading/10);
-      #endif
+      //#endif
       HAS_FIX = false;
     }
   #endif

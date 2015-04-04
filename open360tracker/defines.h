@@ -59,8 +59,8 @@ typedef struct {
 //#define exampleBool_1_6    ( (volatile PackedBool*)(&GPIOR1) )->f6
 //#define exampleBool_1_7    ( (volatile PackedBool*)(&GPIOR1) )->f7
 
-#define toRad(val) val * PI/180.0
-#define toDeg(val) val * 180.0/PI
+#define toRad(val) val * PI/180.0f
+#define toDeg(val) val * 180.0f/PI
 
 #define meter2feet(value) value * 3.2808399
 #define feet2meter(value) value * 0.3048
