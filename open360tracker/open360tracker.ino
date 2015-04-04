@@ -13,7 +13,7 @@
 #include "servos.h"
 #include "inttypes.h"
 #include "telemetry.h"
-
+#include <TinyGPS.h>
 void calcTilt();
 void getError();
 void calculatePID();
@@ -38,7 +38,7 @@ geoCoordinate_t trackerPosition;
 
 //only use tinygps when local gps is used
 #ifdef LOCAL_GPS
-  #include <TinyGPS.h>
+  
   #include <SoftwareSerial.h>
   SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
   TinyGPS gps;
@@ -155,7 +155,7 @@ void loop()
   #ifdef LCD_DISPLAY
   if (millis() > lcd_time){
     //switch screen every X seconds
-    if (millis() % 10000 < 6000){
+    if (millis() % 10000 < 7000){
       //headings, alt, distance, sats
       lcd.setCursor(0,0);
       #ifndef MFD
@@ -212,7 +212,8 @@ void loop()
       
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
       distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));  
-      targetPosition.heading = getTargetHeading(&trackerPosition, &targetPosition);
+      //targetPosition.heading = getTargetHeading(&trackerPosition, &targetPosition);
+      targetPosition.heading = TinyGPS::course_to(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f)*10.0f;
 
       #ifdef DEBUG
         Serial.print("Lat: "); Serial.print(targetPosition.lat); 
@@ -407,21 +408,6 @@ void calculatePID(void)
     PWMOutput = PAN_0;
   }
 }
-
-#ifndef MFD
-uint16_t getTargetHeading(geoCoordinate_t *a, geoCoordinate_t *b)
-{
-  // get difference between both points
-  int32_t dlat = a->lat - b->lat;
-  int32_t dlon = a->lon - b->lon;
-  
-  // calculate angle in radians and convert to degrees
-  int16_t angle = (int16_t)(atan2(dlat, dlon) * (1800.0f / PI))%3600;
-  
-  // shift from -180/180 to 0/359
-  return (uint16_t)(angle < 0 ? angle + 3600 : angle);
-}
-#endif
 
 #ifdef LOCAL_GPS
 void initGps(){
