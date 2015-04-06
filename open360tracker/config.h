@@ -21,19 +21,17 @@
  *  FRSKY_D -> D-Series
  *  FRSKY_X -> Taranis / XJT
  *  HOTT -> MX12, MX16 and all other HoTT transmitters with telemetry
- *  EXTERNAL -> implement your own protocol
  *  RVOSD
- *  GPS_TELEMETRY -> NMEA/Ublox protocol over serial transmission system (e.g. 3DR radio)
  *  MFD -> MFD protocol will not work with local GPS!!!!
- *  MAVLINK
+ *  SERVOTEST
  */
-#define FRSKY_X
+#define SERVOTEST
 
 /* #### Baud Rate ####
  *
  * baud rate of telemetry input
  * 9600 for FRSKY_D -> D-Series
- * 57600 for FRSKY_X -> Taranis / XJT
+ * 57600 for FRSKY_X -> Taranis/XJT and MAVLINK
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
@@ -121,6 +119,8 @@
  * Uncomment to display data on LCD Display
  *
  * I2C LCD Display is required.
+ *
+ *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
 #define LCD_DISPLAY
