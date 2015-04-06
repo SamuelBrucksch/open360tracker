@@ -145,7 +145,6 @@ void loop()
   if (Serial.available() > 1)
   {
     uint8_t c = Serial.read();
-
     encodeTargetData(c);
     digitalWrite(LED_PIN, HIGH);
   }else{
@@ -246,12 +245,14 @@ void loop()
      } else if (CURRENT_STATE && millis() - calib_timer > 4000){
        //start calibration routine if button pressed > 4s and released
        //cli();
+       #ifdef LCD_DISPLAY
        lcd.clear();
        lcd.setCursor(0,0);
        //sprintf(lcd_str, "HDG:%03u AZI:%03u", 0, 0);
-       lcd.print("Calibration in");
+       lcd.print(" Calibration in ");
        lcd.setCursor(0,1);
-       lcd.print("progress...");
+       lcd.print("   progress...  ");
+       #endif
        calibrate_compass();
        calib_timer = 0; 
        //sei();
