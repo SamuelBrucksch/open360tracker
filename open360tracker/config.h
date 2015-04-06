@@ -25,7 +25,7 @@
  *  MFD -> MFD protocol will not work with local GPS!!!!
  *  SERVOTEST
  */
-#define SERVOTEST
+#define FRSKY_X
 
 /* #### Baud Rate ####
  *
@@ -123,7 +123,7 @@
  *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-#define LCD_DISPLAY
+//#define LCD_DISPLAY
 
 /* #### Do not edit below this line */
 #if TILT_0 < 1000 || TILT_0 > 2000 || TILT_90 > 2000  || TILT_90 < 1000
