@@ -57,6 +57,13 @@ geoCoordinate_t trackerPosition;
   long lcd_time;
 #endif
 
+#ifdef SERVOTEST
+int p = P;
+int i = I;
+int d = D;
+int tilt = 0;
+#endif
+
 void setup()
 {
   #ifdef LCD_DISPLAY
@@ -73,7 +80,11 @@ void setup()
   
   HAS_ALT = false;
   HAS_FIX = false;
+  #ifndef SERVOTEST
   HOME_SET = false;
+  #else
+  HOME_SET = true;
+  #endif
   SETTING_HOME = false;
   PREVIOUS_STATE = true;
   TRACKING_STARTED = false;
@@ -145,12 +156,38 @@ void loop()
   if (Serial.available() > 1)
   {
     uint8_t c = Serial.read();
-    encodeTargetData(c);
+    #ifndef SERVOTEST
+      encodeTargetData(c);
+    #else
+      if (c == 'H' || c == 'h'){
+        //target heading in degree
+        targetPosition.heading = Serial.parseInt();
+      } else if (c == 'T' || c == 't'){
+        //tilt angle in degree
+        int value = Serial.parseInt();
+        if (value > 90)
+          value = 90;
+        else if (value < 0)
+          value = 0;
+        tilt = map(value, 0, 90, TILT_0, TILT_90);
+        SET_TILT_SERVO_SPEED(tilt);
+      } else if (c == 'M' || c == 'm'){
+        //tilt angle in ms
+        tilt = Serial.parseInt();
+        SET_TILT_SERVO_SPEED(tilt);
+      }else if (c == 'P' || c == 'p'){
+        p = Serial.parseInt();
+      }else if (c == 'I' || c == 'i'){
+        i = Serial.parseInt();
+      }else if (c == 'D' || c == 'd'){
+        d = Serial.parseInt();
+      }
+    #endif
     digitalWrite(LED_PIN, HIGH);
   }else{
     digitalWrite(LED_PIN, LOW);  
   }
-  
+  #ifndef SERVOTEST
   #ifdef LCD_DISPLAY
   if (millis() > lcd_time){
     //switch screen every X seconds
@@ -224,7 +261,15 @@ void loop()
       HAS_FIX = false;
     }
   #endif
-  
+  #else
+    Serial.print("Heading: ");Serial.print(trackerPosition.heading);
+    Serial.print(" Target Heading: ");Serial.print(targetPosition.heading);
+    Serial.print(" PAN: ");Serial.print(PWMOutput);
+    Serial.print(" TILT: ");Serial.print(tilt);
+    Serial.print(" P: ");Serial.print(p);
+    Serial.print(" I: ");Serial.print(i);
+    Serial.print(" D: ");Serial.println(d);
+  #endif
   // refresh rate of compass is 75Hz -> 13.333ms to refresh the data
   // we update the heading every 14ms to get as many samples into the smooth array as possible
   if (millis() > time){
@@ -259,7 +304,7 @@ void loop()
      }
      PREVIOUS_STATE = CURRENT_STATE;
   }
-  
+  #ifndef SERVOTEST
   #ifndef LOCAL_GPS
     //only needed if no local gps
     if (!digitalRead(HOME_BUTTON)){
@@ -322,6 +367,7 @@ void loop()
       NEW_HEADING = false;
     }
   #endif
+  #endif
   #ifndef MFD
     #if (START_TRACKING_DISTANCE > 0)
       //Only track if tracking process started.
@@ -342,10 +388,13 @@ void loop()
           calculatePID();   // Calculate the PID output from the error
           SET_PAN_SERVO_SPEED(PWMOutput);
           NEW_HEADING = false;
+          #ifndef SERVOTEST
           calcTilt(); 
+          #endif
         }
       } 
     #endif
+    
 }
 
 //Tilt angle alpha = atan(alt/dist) 
@@ -387,7 +436,31 @@ void getError(void)
 void calculatePID(void)
 {
   // Calculate the PID  
-  PID = Error[0] * P;     // start with proportional gain
+  #ifdef SERVOTEST
+    PID = Error[0] * p;     // start with proportional gain
+  Accumulator += Error[0];  // accumulator is sum of errors
+  if(Accumulator>5000)
+    Accumulator=5000;
+   if(Accumulator<-5000)
+    Accumulator=-5000; 
+  PID += i * Accumulator; // add integral gain and error accumulation
+  Dk=d * (Error[0]-Error[10]);
+  PID += Dk; // differential gain comes next
+  PID = PID >> Divider; // scale PID down with divider
+  // limit the PID to the resolution we have for the PWM variable
+  if(PID >= 500)
+    PID = 500;
+  if(PID <= -500)
+    PID = -500;
+  if (Error[0] > 10){
+    PWMOutput = PAN_0+PID;
+  }else if(Error[0] < -10){
+    PWMOutput = PAN_0+PID;
+  } else {
+    PWMOutput = PAN_0;
+  }
+  #else
+    PID = Error[0] * P;     // start with proportional gain
   Accumulator += Error[0];  // accumulator is sum of errors
   if(Accumulator>5000)
     Accumulator=5000;
@@ -409,6 +482,7 @@ void calculatePID(void)
   } else {
     PWMOutput = PAN_0;
   }
+  #endif
 }
 
 #ifdef LOCAL_GPS

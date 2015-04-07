@@ -25,7 +25,7 @@
  *  MFD -> MFD protocol will not work with local GPS!!!!
  *  SERVOTEST
  */
-#define FRSKY_X
+#define SERVOTEST
 
 /* #### Baud Rate ####
  *
