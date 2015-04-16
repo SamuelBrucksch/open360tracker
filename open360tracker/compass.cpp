@@ -14,14 +14,13 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "servos.h"
-#ifdef DEBUG
-#include "uart.h"
-#endif
+
+#include "eeprom_functions.h"
 
 static float   magGain[3] = {1.0,1.0,1.0};
 int16_t magADC[3];
 float smoothed[3];
-int16_t magZero[3];
+int magZero[3];
 static uint8_t magInit = 0;
 
 #define filterSamples 11
@@ -158,9 +157,13 @@ void initCompass(){
     magGain[1] = 1.0;
     magGain[2] = 1.0;
   }
+  
+    for(uint8_t axis=0;axis<3;axis++){
+      magZero[axis] = LoadIntegerFromEEPROM(axis * 2);
+    }
 }
 
-void calibrate(){
+void calibrate_compass(){
     static int16_t magZeroTempMin[3];
     static int16_t magZeroTempMax[3];
     byte axis = 0;
@@ -203,11 +206,8 @@ void calibrate(){
     SET_PAN_SERVO_SPEED(PAN_0);
     for(axis=0;axis<3;axis++){
       magZero[axis] = (magZeroTempMin[axis] + magZeroTempMax[axis])>>1;
-      Serial.print(magZero[axis]);Serial.print(" ");
+      StoreIntegerToEEPROM(magZero[axis], axis * 2);
     }
-    Serial.println();
-      //writeGlobalSet(1);
-      //TODO write to eeprom
 }
 
 int getHeading(){
@@ -216,9 +216,7 @@ int getHeading(){
   smoothed[0] = (digitalSmooth(magADC[0], xSmooth) * magGain[0]) - magZero[0];
   smoothed[1] = (digitalSmooth(magADC[1], ySmooth) * magGain[1]) - magZero[1];
   smoothed[2] = (digitalSmooth(magADC[2], zSmooth) * magGain[2]) - magZero[2];
-  /*magADC[0] = magADC[0] * magGain[0];
-  magADC[1] = magADC[1] * magGain[1];
-  magADC[2] = magADC[2] * magGain[2];*/
+  
   double heading = atan2(smoothed[1], smoothed[0]) ;
 
   if(heading < 0)
@@ -227,5 +225,6 @@ int getHeading(){
   if(heading > 2*M_PI)
     heading -= 2*M_PI;
 
-  return (int) ((heading * 1800.0/M_PI)+ DECLINATION + 1800) % 3600;
+  return (int) ((heading * 1800.0/M_PI) + DECLINATION + OFFSET) % 3600;
 }
+

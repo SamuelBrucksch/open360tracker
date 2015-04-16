@@ -10,9 +10,9 @@
 /** PID Values
 *
 */
-//#define P 2500
-//#define I 40 //40
-//#define D 10 //10
+#define P 2200 //default 2200
+#define I 280 //default 280
+#define D 20000 //default 20000
 
 /* #### Protocol ####
  *
@@ -21,28 +21,31 @@
  *  FRSKY_D -> D-Series
  *  FRSKY_X -> Taranis / XJT
  *  HOTT -> MX12, MX16 and all other HoTT transmitters with telemetry
- *  EXTERNAL -> implement your own protocol
+ *  RVOSD
+ *  MFD -> MFD protocol will not work with local GPS!!!!
+ *  SERVOTEST
  */
-#define FRSKY_D
+#define SERVOTEST
 
 /* #### Baud Rate ####
  *
  * baud rate of telemetry input
  * 9600 for FRSKY_D -> D-Series
- * 57600 for FRSKY_X -> Taranis / XJT
+ * 57600 for FRSKY_X -> Taranis/XJT and MAVLINK
+ * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 9600
+#define BAUD 57600
 
 /* #### Tilt servo 0° adjustment ####
  *
  *  Enter PWM value of Servo for pointing straight forward
  */
-#define TILT_0 1050
+#define TILT_0 1000
 
 /* #### Tilt servo 90° adjustment ####
  *
- *  Enter PWM value of Servo for pointing 90Â° up
+ *  Enter PWM value of Servo for pointing 90° up
  */
 #define TILT_90 2000
 
@@ -50,7 +53,7 @@
  *
  *  Enter PWM value of Servo for not moving
  */
-#define PAN_0 1492
+#define PAN_0 1485
 
 /* #### Compass declination ####
  *
@@ -58,29 +61,51 @@
  * Enter your city and then get the value for Magnetic declination
  * for example [Magnetic declination: 3° 2' EAST]
  *
- * now enter the value in the format DEGREE.MINUTE -> 3.2
+ * now enter the value in the format DEGREE.MINUTE * 10 -> 3.2 * 10 = 32
  *
  * set to 0 if you cannot find your declination!
  */
 #define DECLINATION 32
 
+/* #### Compass offset ####
+ *
+ * If you did not mount your compass with the arrow pointing to the front you can set an offset here. 
+ *
+ * Needs to be multiplied by 10 -> 90° = 900
+ *
+ * Range: 0 ... 3599
+ *
+ */
+#define OFFSET 900
+
+/* #### DIY GPS / Fix Type ####
+*
+* If you use the diy GPS the fix type is transmitted with the satellites on Temp2. The value is calculated like this:
+* Num of Sats: 7
+* Fix Type: 3
+* Value = Sats * 10 + Fix Type = 7*10 + 3 = 73
+*
+* If you use the native frsky gps or fixtype is not present comment to disable.
+*/
+#define DIY_GPS
+
+#ifndef MFD
 /* #### Ground GPS ####
+ *
+ * !!!!!!NOT SUPPORTED YET!!!!!!!
  *
  * needed for ground gps so home does not need to be manually set
  *
- * uncomment #define LOCAL_GPS to disable local GPS
- */
-//#define LOCAL_GPS
-#define GPS_BAUDRATE 38400
-
-/* #### Local GPS type ####
- *
- * Needed for GPS configuration
- *
  * Types:
  * MTK, UBX
+ * UBX not implemented yet
+ *
+ * does not work when in MFD mode
  */
+//#define LOCAL_GPS
 #define MTK
+#define GPS_BAUDRATE 38400
+#endif
 
 /* #### Tracker Setup ####
  * 
@@ -89,11 +114,27 @@
  */
 #define START_TRACKING_DISTANCE 0
 
-/* ### Vario Altitude ###
+/* ### LCD Display ###
  *
- * Uncomment to use baro alt instead of GPS alt. Only works if Vario is presemt
+ * Uncomment to display data on LCD Display
+ *
+ * I2C LCD Display is required.
+ *
+ *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-//#define VARIO
+//#define LCD_DISPLAY
+
+/* #### Do not edit below this line */
+#if TILT_0 < 1000 || TILT_0 > 2000 || TILT_90 > 2000  || TILT_90 < 1000
+  #error "Tilt servo range invalid. Must be between 1000 and 2000."
+#endif
+
+#if OFFSET < 0 || OFFSET > 3599
+  #error "Offset invalid. Must be between 0° and 359°."
+#endif
 
 #endif
+
+
+
