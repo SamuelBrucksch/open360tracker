@@ -27,6 +27,7 @@ typedef struct{
   int16_t alt;
   // heading in 0-359° *10
   uint16_t heading;
+  uint16_t distance;
 } 
 geoCoordinate_t;
 
