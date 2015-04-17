@@ -14,19 +14,18 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "servos.h"
-
 #include "eeprom_functions.h"
 
-static float   magGain[3] = {1.0,1.0,1.0};
+static float magGain[3] = {1.0,1.0,1.0};
 int16_t magADC[3];
 float smoothed[3];
 int magZero[3];
 static uint8_t magInit = 0;
 
 #define filterSamples 11
-int xSmooth [filterSamples];
-int ySmooth [filterSamples];
-int zSmooth [filterSamples];
+int xSmooth[filterSamples];
+int ySmooth[filterSamples];
+int zSmooth[filterSamples];
 
 int digitalSmooth(int rawIn, int *sensSmoothArray){     // "int *sensSmoothArray" passes an array to the function - the asterisk indicates the array name is a pointer
   int temp;
@@ -91,19 +90,19 @@ bool readRawAxis(){
     magADC[1] = (Wire.read() << 8) | Wire.read();
   }
   Wire.endTransmission();
-  
+
   if (magADC[0] == -4096 || magADC[1] == -4096 || magADC[2] == -4096) {
-        // no valid data available
-        return false;
-    }
-    return true;
+    // no valid data available
+    return false;
+  }
+  return true;
 }
 
 unsigned long timer = 0;
 
 
 void initCompass(){
-  int32_t xyz_total[3]={0,0,0}; 
+  int32_t xyz_total[3]={ 0,0,0 }; 
   bool bret = true;
   write(HMC58X3_R_CONFA, 0x010 + HMC_POS_BIAS);
   write(HMC58X3_R_CONFB, 2 << 5);
@@ -123,14 +122,14 @@ void initCompass(){
       break;  // Breaks out of the for loop.  No sense in continuing if we saturated.
     }
   }
-  
+
   write(HMC58X3_R_CONFA, 0x010 + HMC_NEG_BIAS);
-  
+
   for (uint8_t i=0; i<10; i++) { 
     write(HMC58X3_R_MODE, 1);
     delay(100);
     while (!readRawAxis());
-                
+
     // Since the measurements are noisy, they should be averaged.
     xyz_total[0]-=magADC[0];
     xyz_total[1]-=magADC[1];
@@ -142,7 +141,7 @@ void initCompass(){
       break;  // Breaks out of the for loop.  No sense in continuing if we saturated.
     }
   }
-  
+
   magGain[0]=fabs(820.0*HMC58X3_X_SELF_TEST_GAUSS*2.0*10.0/xyz_total[0]);
   magGain[1]=fabs(820.0*HMC58X3_Y_SELF_TEST_GAUSS*2.0*10.0/xyz_total[1]);
   magGain[2]=fabs(820.0*HMC58X3_Z_SELF_TEST_GAUSS*2.0*10.0/xyz_total[2]);
@@ -151,72 +150,72 @@ void initCompass(){
   write(HMC58X3_R_CONFB ,0x20 ); //Configuration Register B  -- 001 00000    configuration gain 1.3Ga
   write(HMC58X3_R_MODE  ,0x00 ); //Mode register             -- 000000 00    continuous Conversion Mode
   delay(100);
-  
+
   if (!bret) { //Something went wrong so get a best guess
     magGain[0] = 1.0;
     magGain[1] = 1.0;
     magGain[2] = 1.0;
   }
-  
-    for(uint8_t axis=0;axis<3;axis++){
-      magZero[axis] = LoadIntegerFromEEPROM(axis * 2);
-    }
+
+  for(uint8_t axis=0;axis<3;axis++){
+    magZero[axis] = LoadIntegerFromEEPROM(axis * 2);
+  }
 }
 
 void calibrate_compass(){
-    static int16_t magZeroTempMin[3];
-    static int16_t magZeroTempMax[3];
-    byte axis = 0;
+  static int16_t magZeroTempMin[3];
+  static int16_t magZeroTempMax[3];
+  byte axis = 0;
+  while (!readRawAxis());
+  for(axis=0;axis<3;axis++) {
+    magZero[axis] = 0;
+    magZeroTempMin[axis] = magADC[axis];
+    magZeroTempMax[axis] = magADC[axis];
+  }
+  timer = millis();
+  SET_PAN_SERVO_SPEED(2000);
+  while (millis() - timer  < 5000) { 
     while (!readRawAxis());
-    for(axis=0;axis<3;axis++) {
-      magZero[axis] = 0;
-      magZeroTempMin[axis] = magADC[axis];
-      magZeroTempMax[axis] = magADC[axis];
-    }
-    timer = millis();
-    SET_PAN_SERVO_SPEED(2000);
-    while (millis() - timer  < 5000) { 
-      while (!readRawAxis());
-      for(axis=0;axis < 3; axis++) {
-        if (magADC[axis] < magZeroTempMin[axis]){
-          magZeroTempMin[axis] = magADC[axis];
-        }
-        if (magADC[axis] > magZeroTempMax[axis]) {
-          magZeroTempMax[axis] = magADC[axis];
-        }
+    for(axis=0;axis < 3; axis++) {
+      if (magADC[axis] < magZeroTempMin[axis]){
+        magZeroTempMin[axis] = magADC[axis];
       }
-      delay(14);
-    }
-    SET_PAN_SERVO_SPEED(PAN_0);
-    delay(1000);
-    SET_PAN_SERVO_SPEED(1000);
-    timer = millis();
-    while (millis() - timer  < 5000) { 
-      while (!readRawAxis());
-      for(axis=0;axis < 3; axis++) {
-        if (magADC[axis] < magZeroTempMin[axis]){
-          magZeroTempMin[axis] = magADC[axis];
-        }
-        if (magADC[axis] > magZeroTempMax[axis]) {
-          magZeroTempMax[axis] = magADC[axis];
-        }
+      if (magADC[axis] > magZeroTempMax[axis]) {
+        magZeroTempMax[axis] = magADC[axis];
       }
-      delay(14);
     }
-    SET_PAN_SERVO_SPEED(PAN_0);
-    for(axis=0;axis<3;axis++){
-      magZero[axis] = (magZeroTempMin[axis] + magZeroTempMax[axis])>>1;
-      StoreIntegerToEEPROM(magZero[axis], axis * 2);
+    delay(14);
+  }
+  SET_PAN_SERVO_SPEED(PAN_0);
+  delay(1000);
+  SET_PAN_SERVO_SPEED(1000);
+  timer = millis();
+  while (millis() - timer  < 5000) { 
+    while (!readRawAxis());
+    for(axis=0;axis < 3; axis++) {
+      if (magADC[axis] < magZeroTempMin[axis]){
+        magZeroTempMin[axis] = magADC[axis];
+      }
+      if (magADC[axis] > magZeroTempMax[axis]) {
+        magZeroTempMax[axis] = magADC[axis];
+      }
     }
+    delay(14);
+  }
+  SET_PAN_SERVO_SPEED(PAN_0);
+  for(axis=0;axis<3;axis++){
+    magZero[axis] = (magZeroTempMin[axis] + magZeroTempMax[axis])>>1;
+    StoreIntegerToEEPROM(magZero[axis], axis * 2);
+  }
 }
 
 int getHeading(){
   while (!readRawAxis());
-  
+
   smoothed[0] = (digitalSmooth(magADC[0], xSmooth) * magGain[0]) - magZero[0];
   smoothed[1] = (digitalSmooth(magADC[1], ySmooth) * magGain[1]) - magZero[1];
   smoothed[2] = (digitalSmooth(magADC[2], zSmooth) * magGain[2]) - magZero[2];
-  
+
   double heading = atan2(smoothed[1], smoothed[0]) ;
 
   if(heading < 0)
@@ -227,4 +226,5 @@ int getHeading(){
 
   return (int) ((heading * 1800.0/M_PI) + DECLINATION + OFFSET) % 3600;
 }
+
 

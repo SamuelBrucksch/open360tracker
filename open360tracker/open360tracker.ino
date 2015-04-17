@@ -13,7 +13,8 @@
 #include "servos.h"
 #include "inttypes.h"
 #include "telemetry.h"
-#include <TinyGPS.h>
+#include "math.h"
+
 void calcTilt();
 void getError();
 void calculatePID();
@@ -29,8 +30,6 @@ uint8_t Divider = 15;
 int PWMOutput;
 long Dk;
 
-//distance in meter
-uint16_t distance;
 // The target position (lat/lon)
 geoCoordinate_t targetPosition;
 // The tracker position (lat/lon)
@@ -38,15 +37,11 @@ geoCoordinate_t trackerPosition;
 
 //only use tinygps when local gps is used
 #ifdef LOCAL_GPS
-  
+  #include <TinyGPS.h>
   #include <SoftwareSerial.h>
   SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
   TinyGPS gps;
   void initGps();
-#endif
-
-#ifndef MFD
-  uint16_t getTargetHeading(geoCoordinate_t *a, geoCoordinate_t *b);
 #endif
 
 #ifdef LCD_DISPLAY
@@ -57,11 +52,15 @@ geoCoordinate_t trackerPosition;
   long lcd_time;
 #endif
 
+#ifdef MFD
+  uint16_t distance;
+#endif
+
 #ifdef SERVOTEST
-int p = P;
-int i = I;
-int d = D;
-int tilt = 0;
+  int p = P;
+  int i = I;
+  int d = D;
+  int tilt = 0;
 #endif
 
 void setup()
@@ -90,8 +89,10 @@ void setup()
   TRACKING_STARTED = false;
   CURRENT_STATE = true;
   NEW_HEADING = false;
-  TEST_MODE = false;
-
+  #ifdef MFD
+    TEST_MODE = false;
+  #endif
+  
   Serial.begin(BAUD);
   
   #ifdef DEBUG
@@ -201,7 +202,7 @@ void loop()
       #endif
       lcd.print(lcd_str);
       lcd.setCursor(0,1);
-      sprintf(lcd_str, "A:%05d D:%05u ", targetPosition.alt, distance);
+      sprintf(lcd_str, "A:%05d D:%05u ", targetPosition.alt, targetPosition.distance);
       lcd.print(lcd_str);
     }else{
       //lat, lon
@@ -248,8 +249,10 @@ void loop()
       
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
       //distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));  
-      distance = TinyGPS::distance_between(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f);
-      targetPosition.heading = TinyGPS::course_to(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f)*10.0f;
+      //distance = TinyGPS::distance_between(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f);
+      //targetPosition.heading = TinyGPS::course_to(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f)*10.0f;
+
+      calcTargetDistanceAndHeading(&trackerPosition, &targetPosition);
 
       #ifdef DEBUG
         Serial.print("Lat: "); Serial.print(targetPosition.lat); 
@@ -261,6 +264,7 @@ void loop()
       HAS_FIX = false;
     }
   #endif
+  
   #else
     Serial.print("Heading: ");Serial.print(trackerPosition.heading);
     Serial.print(" Target Heading: ");Serial.print(targetPosition.heading);
@@ -310,10 +314,7 @@ void loop()
     if (!digitalRead(HOME_BUTTON)){
       //set home
       #ifndef MFD
-        trackerPosition.alt = targetPosition.alt;
-        trackerPosition.lat = targetPosition.lat;
-        trackerPosition.lon = targetPosition.lon;
-        HOME_SET = true;
+        setHome(&trackerPosition, &targetPosition);
       #else
       //MFD protocol: set home must be pressed on driver!
       #endif
@@ -401,11 +402,11 @@ void loop()
 void calcTilt(){
   uint16_t alpha = 0;
   //prevent division by 0
-  if (distance == 0){
+  if (targetPosition.distance == 0){
     alpha = 90;
   }
   else {
-    alpha = toDeg(atan(float(targetPosition.alt - trackerPosition.alt)/distance));
+    alpha = toDeg(atan(float(targetPosition.alt - trackerPosition.alt)/targetPosition.distance));
   }
   //just for current tests, later we will have negative tilt as well
   if (alpha < 0)

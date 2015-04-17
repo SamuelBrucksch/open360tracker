@@ -6,6 +6,7 @@
  *
  */
 #include <inttypes.h>
+#include "config.h"
 
 #define FMW_VERSION "0.1"
 
@@ -15,9 +16,9 @@
 #define GPS_RX_PIN 8
 #define GPS_TX_PIN 7
 
- //lat and lon required in units of millionths of a degree -> precision of 5 digits after '.'
- // for example 52.52081 -> 5252081
- //             13.40945 -> 1340945
+//lat and lon required in units of millionths of a degree -> precision of 5 digits after '.'
+// for example 52.52081 -> 5252081
+//             13.40945 -> 1340945
 typedef struct{
   // latitude in units of millionths of a degree
   int32_t lat;
@@ -27,6 +28,7 @@ typedef struct{
   int16_t alt;
   // heading in 0-359° *10
   uint16_t heading;
+  // distance from 0 ... 64km
   uint16_t distance;
 } 
 geoCoordinate_t;
@@ -51,7 +53,9 @@ typedef struct {
 #define SETTING_HOME      ( (volatile PackedBool*)(&GPIOR0) )->f6
 #define NEW_HEADING       ( (volatile PackedBool*)(&GPIOR0) )->f7
 
-#define TEST_MODE            ( (volatile PackedBool*)(&GPIOR1) )->f0
+#ifdef MFD
+  #define TEST_MODE            ( (volatile PackedBool*)(&GPIOR1) )->f0
+#endif
 //#define exampleBool_1_2    ( (volatile PackedBool*)(&GPIOR1) )->f1
 //#define exampleBool_1_3    ( (volatile PackedBool*)(&GPIOR1) )->f2
 //#define exampleBool_1_3    ( (volatile PackedBool*)(&GPIOR1) )->f3
@@ -66,4 +70,5 @@ typedef struct {
 #define meter2feet(value) value * 3.2808399
 #define feet2meter(value) value * 0.3048
 #endif
+
 

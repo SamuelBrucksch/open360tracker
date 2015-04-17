@@ -8,8 +8,8 @@
 //#define DEBUG
 
 /** PID Values
-*
-*/
+ *
+ */
 #define P 2200 //default 2200
 #define I 280 //default 280
 #define D 20000 //default 20000
@@ -25,7 +25,7 @@
  *  MFD -> MFD protocol will not work with local GPS!!!!
  *  SERVOTEST
  */
-#define SERVOTEST
+#define FRSKY_X
 
 /* #### Baud Rate ####
  *
@@ -79,14 +79,14 @@
 #define OFFSET 900
 
 /* #### DIY GPS / Fix Type ####
-*
-* If you use the diy GPS the fix type is transmitted with the satellites on Temp2. The value is calculated like this:
-* Num of Sats: 7
-* Fix Type: 3
-* Value = Sats * 10 + Fix Type = 7*10 + 3 = 73
-*
-* If you use the native frsky gps or fixtype is not present comment to disable.
-*/
+ *
+ * If you use the diy GPS the fix type is transmitted with the satellites on Temp2. The value is calculated like this:
+ * Num of Sats: 7
+ * Fix Type: 3
+ * Value = Sats * 10 + Fix Type = 7*10 + 3 = 73
+ *
+ * If you use the native frsky gps or fixtype is not present comment to disable.
+ */
 #define DIY_GPS
 
 #ifndef MFD
@@ -123,18 +123,14 @@
  *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-//#define LCD_DISPLAY
+#define LCD_DISPLAY
 
 /* #### Do not edit below this line */
 #if TILT_0 < 1000 || TILT_0 > 2000 || TILT_90 > 2000  || TILT_90 < 1000
-  #error "Tilt servo range invalid. Must be between 1000 and 2000."
+#error "Tilt servo range invalid. Must be between 1000 and 2000."
 #endif
 
 #if OFFSET < 0 || OFFSET > 3599
-  #error "Offset invalid. Must be between 0° and 359°."
+#error "Offset invalid. Must be between 0° and 359°."
 #endif
-
 #endif
-
-
-
