@@ -159,8 +159,8 @@ void loop()
 {
   #ifdef SERVOTEST
   if (millis() - servoTimer > 200){
-    Serial.print("Heading: ");Serial.print(trackerPosition.heading);
-    Serial.print(" Target Heading: ");Serial.print(targetPosition.heading);
+    Serial.print("Heading: ");Serial.print(trackerPosition.heading/10);
+    Serial.print(" Target Heading: ");Serial.print(targetPosition.heading/10);
     Serial.print(" PAN: ");Serial.print(PWMOutput);
     Serial.print(" TILT: ");Serial.print(tilt);
     Serial.print(" P: ");Serial.print(p);
