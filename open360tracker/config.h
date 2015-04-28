@@ -23,6 +23,7 @@
  *  HOTT -> MX12, MX16 and all other HoTT transmitters with telemetry
  *  RVOSD
  *  MFD -> MFD protocol will not work with local GPS!!!!
+ *  MAVLINK -> Mavlink protocol (APM/Pixhawk/...)
  *  SERVOTEST
  */
 #define FRSKY_X

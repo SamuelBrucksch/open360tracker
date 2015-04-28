@@ -15,6 +15,7 @@
 #include "telemetry.h"
 #include "math.h"
 #include <TinyGPS.h>
+#include <Mavlink.h>
 void calcTilt();
 void getError();
 void calculatePID();
