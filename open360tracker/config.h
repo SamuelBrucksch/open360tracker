@@ -10,7 +10,7 @@
 /** PID Values
 *
 */
-#define P 2500 //default 2200
+#define P 2200 //default 2200
 #define I 80 //default 280
 #define D 1000 //default 20000
 
@@ -41,13 +41,13 @@
  *
  *  Enter PWM value of Servo for pointing straight forward
  */
-#define TILT_0 1000
+#define TILT_0 1050
 
 /* #### Tilt servo 90° adjustment ####
  *
  *  Enter PWM value of Servo for pointing 90° up
  */
-#define TILT_90 2000
+#define TILT_90 2025
 
 /* #### Pan servo 0° adjustment ####
  *
@@ -132,8 +132,8 @@
 #define LCD_DISPLAY
 
 /* #### Do not edit below this line */
-#if TILT_0 < 1000 || TILT_0 > 2000 || TILT_90 > 2000  || TILT_90 < 1000
-  #error "Tilt servo range invalid. Must be between 1000 and 2000."
+#if TILT_0 < 800 || TILT_0 > 2200 || TILT_90 > 2200  || TILT_90 < 800
+  #error "Tilt servo range invalid. Must be between 800 and 2200."
 #endif
 
 #if OFFSET < 0 || OFFSET > 3599

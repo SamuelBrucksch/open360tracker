@@ -266,7 +266,7 @@ void loop()
       
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
       //distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));  
-      distance = TinyGPS::distance_between(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f);
+      targetPosition.distance = TinyGPS::distance_between(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f);
       targetPosition.heading = TinyGPS::course_to(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f)*10.0f;
 
       //calcTargetDistanceAndHeading(&trackerPosition, &targetPosition);
@@ -385,7 +385,7 @@ void loop()
       //Only track if tracking process started.
       if(!TRACKING_STARTED) {
         //if plane is START_TRACKING_DISTANCE meter away from tracker start tracking process.
-        if (START_TRACKING_DISTANCE <= distance && HOME_SET){
+        if (START_TRACKING_DISTANCE <= targetPosition.distance && HOME_SET){
           TRACKING_STARTED = true;
         }
       } else {
