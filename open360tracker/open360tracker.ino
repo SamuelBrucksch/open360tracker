@@ -151,8 +151,25 @@ void setup()
   #endif
 }
 
+#ifdef SERVOTEST
+long servoTimer = 0;
+#endif
+
 void loop()
 {
+  #ifdef SERVOTEST
+  if (millis() - servoTimer > 200){
+    Serial.print("Heading: ");Serial.print(trackerPosition.heading);
+    Serial.print(" Target Heading: ");Serial.print(targetPosition.heading);
+    Serial.print(" PAN: ");Serial.print(PWMOutput);
+    Serial.print(" TILT: ");Serial.print(tilt);
+    Serial.print(" P: ");Serial.print(p);
+    Serial.print(" I: ");Serial.print(i);
+    Serial.print(" D: ");Serial.println(d);
+    servoTimer = millis();
+  }
+  #endif
+  
   //TODO change to telemetry serial port
   if (Serial.available() > 1)
   {
@@ -265,14 +282,8 @@ void loop()
     }
   #endif
   
-  #else
-    Serial.print("Heading: ");Serial.print(trackerPosition.heading);
-    Serial.print(" Target Heading: ");Serial.print(targetPosition.heading);
-    Serial.print(" PAN: ");Serial.print(PWMOutput);
-    Serial.print(" TILT: ");Serial.print(tilt);
-    Serial.print(" P: ");Serial.print(p);
-    Serial.print(" I: ");Serial.print(i);
-    Serial.print(" D: ");Serial.println(d);
+
+    
   #endif
   // refresh rate of compass is 75Hz -> 13.333ms to refresh the data
   // we update the heading every 14ms to get as many samples into the smooth array as possible
@@ -454,9 +465,9 @@ void calculatePID(void)
   if(PID <= -500)
     PID = -500;
   if (Error[0] > 10){
-    PWMOutput = PAN_0+PID;
+      PWMOutput = PAN_0 + PID + MIN_PAN_SPEED;
   }else if(Error[0] < -10){
-    PWMOutput = PAN_0+PID;
+      PWMOutput = PAN_0 + PID - MIN_PAN_SPEED;
   } else {
     PWMOutput = PAN_0;
   }
@@ -477,9 +488,9 @@ void calculatePID(void)
   if(PID <= -500)
     PID = -500;
   if (Error[0] > 10){
-    PWMOutput = PAN_0+PID;
+    PWMOutput = PAN_0+PID + MIN_PAN_SPEED;
   }else if(Error[0] < -10){
-    PWMOutput = PAN_0+PID;
+    PWMOutput = PAN_0+PID-MIN_PAN_SPEED;
   } else {
     PWMOutput = PAN_0;
   }
@@ -501,3 +512,4 @@ void initGps(){
   #endif
 }
 #endif
+

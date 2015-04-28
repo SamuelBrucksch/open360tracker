@@ -8,11 +8,11 @@
 //#define DEBUG
 
 /** PID Values
- *
- */
-#define P 2200 //default 2200
-#define I 280 //default 280
-#define D 20000 //default 20000
+*
+*/
+#define P 2500 //default 2200
+#define I 80 //default 280
+#define D 1000 //default 20000
 
 /* #### Protocol ####
  *
@@ -25,7 +25,7 @@
  *  MFD -> MFD protocol will not work with local GPS!!!!
  *  SERVOTEST
  */
-#define FRSKY_X
+#define SERVOTEST
 
 /* #### Baud Rate ####
  *
@@ -35,7 +35,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 57600
+#define BAUD 115200
 
 /* #### Tilt servo 0° adjustment ####
  *
@@ -54,6 +54,12 @@
  *  Enter PWM value of Servo for not moving
  */
 #define PAN_0 1485
+
+/* #### Pan servo minimum required speed ####
+ *
+ *  If the servo has problems to start a rotation when the speed is slow adjust this value until the tracker moves directly from each position
+ */
+#define MIN_PAN_SPEED 50
 
 /* #### Compass declination ####
  *
@@ -79,14 +85,14 @@
 #define OFFSET 900
 
 /* #### DIY GPS / Fix Type ####
- *
- * If you use the diy GPS the fix type is transmitted with the satellites on Temp2. The value is calculated like this:
- * Num of Sats: 7
- * Fix Type: 3
- * Value = Sats * 10 + Fix Type = 7*10 + 3 = 73
- *
- * If you use the native frsky gps or fixtype is not present comment to disable.
- */
+*
+* If you use the diy GPS the fix type is transmitted with the satellites on Temp2. The value is calculated like this:
+* Num of Sats: 7
+* Fix Type: 3
+* Value = Sats * 10 + Fix Type = 7*10 + 3 = 73
+*
+* If you use the native frsky gps or fixtype is not present comment to disable.
+*/
 #define DIY_GPS
 
 #ifndef MFD
@@ -127,10 +133,14 @@
 
 /* #### Do not edit below this line */
 #if TILT_0 < 1000 || TILT_0 > 2000 || TILT_90 > 2000  || TILT_90 < 1000
-#error "Tilt servo range invalid. Must be between 1000 and 2000."
+  #error "Tilt servo range invalid. Must be between 1000 and 2000."
 #endif
 
 #if OFFSET < 0 || OFFSET > 3599
-#error "Offset invalid. Must be between 0° and 359°."
+  #error "Offset invalid. Must be between 0° and 359°."
 #endif
+
 #endif
+
+
+
