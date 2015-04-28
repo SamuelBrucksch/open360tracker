@@ -25,7 +25,7 @@
  *  MFD -> MFD protocol will not work with local GPS!!!!
  *  SERVOTEST
  */
-#define SERVOTEST
+#define FRSKY_X
 
 /* #### Baud Rate ####
  *
@@ -35,7 +35,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 115200
+#define BAUD 57600
 
 /* #### Tilt servo 0° adjustment ####
  *

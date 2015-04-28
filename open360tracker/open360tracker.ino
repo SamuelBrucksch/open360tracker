@@ -14,7 +14,7 @@
 #include "inttypes.h"
 #include "telemetry.h"
 #include "math.h"
-
+#include <TinyGPS.h>
 void calcTilt();
 void getError();
 void calculatePID();
@@ -37,7 +37,7 @@ geoCoordinate_t trackerPosition;
 
 //only use tinygps when local gps is used
 #ifdef LOCAL_GPS
-  #include <TinyGPS.h>
+  
   #include <SoftwareSerial.h>
   SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
   TinyGPS gps;
@@ -266,10 +266,10 @@ void loop()
       
       // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
       //distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));  
-      //distance = TinyGPS::distance_between(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f);
-      //targetPosition.heading = TinyGPS::course_to(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f)*10.0f;
+      distance = TinyGPS::distance_between(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f);
+      targetPosition.heading = TinyGPS::course_to(trackerPosition.lat/100000.0f, trackerPosition.lon/100000.0f, targetPosition.lat/100000.0f, targetPosition.lon/100000.0f)*10.0f;
 
-      calcTargetDistanceAndHeading(&trackerPosition, &targetPosition);
+      //calcTargetDistanceAndHeading(&trackerPosition, &targetPosition);
 
       #ifdef DEBUG
         Serial.print("Lat: "); Serial.print(targetPosition.lat); 
@@ -488,9 +488,9 @@ void calculatePID(void)
   if(PID <= -500)
     PID = -500;
   if (Error[0] > 10){
-    PWMOutput = PAN_0+PID + MIN_PAN_SPEED;
+    PWMOutput = PAN_0 + PID + MIN_PAN_SPEED;
   }else if(Error[0] < -10){
-    PWMOutput = PAN_0+PID-MIN_PAN_SPEED;
+    PWMOutput = PAN_0 + PID-MIN_PAN_SPEED;
   } else {
     PWMOutput = PAN_0;
   }
