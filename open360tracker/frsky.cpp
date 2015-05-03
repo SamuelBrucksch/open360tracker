@@ -55,19 +55,19 @@ uint16_t lon_bp;
 uint16_t lat_ap;
 uint16_t lon_ap;
 
-int32_t getTargetLat(){
-  int32_t value = gpsToLong(NS=='N'?1:-1, lat_bp, lat_ap);
+int32_t getTargetLat() {
+  int32_t value = gpsToLong(NS == 'N' ? 1 : -1, lat_bp, lat_ap);
   NS = 0;
   return value;
 }
 
-int32_t getTargetLon(){
-  int32_t value = gpsToLong(EW=='E'?1:-1, lon_bp, lon_ap);
+int32_t getTargetLon() {
+  int32_t value = gpsToLong(EW == 'E' ? 1 : -1, lon_bp, lon_ap);
   EW = 0;
   return value;
 }
 
-int16_t getTargetAlt(){
+int16_t getTargetAlt() {
   return alt;
 }
 
@@ -76,24 +76,24 @@ int16_t getSats() {
 }
 
 bool stuff;
-void encodeTargetData(uint8_t c){
+void encodeTargetData(uint8_t c) {
   static uint8_t bufferIndex = 0;
-  if (c == 0x7e){
-      //message end
-    if (bufferIndex == FRSKY_RX_PACKET_SIZE){
-       processFrskyPacket(frskyRxBuffer);
-       bufferIndex = 0;
-       return;
-    } else if (bufferIndex >0 && bufferIndex < FRSKY_RX_PACKET_SIZE){
-       //0x7e in data -> something is wrong
-       bufferIndex = 0;
+  if (c == 0x7e) {
+    //message end
+    if (bufferIndex == FRSKY_RX_PACKET_SIZE) {
+      processFrskyPacket(frskyRxBuffer);
+      bufferIndex = 0;
+      return;
+    } else if (bufferIndex > 0 && bufferIndex < FRSKY_RX_PACKET_SIZE) {
+      //0x7e in data -> something is wrong
+      bufferIndex = 0;
     } else {
-       //msg begin
-       frskyRxBuffer[bufferIndex++] = c;
+      //msg begin
+      frskyRxBuffer[bufferIndex++] = c;
     }
-  } else if (c == 0x7D){
+  } else if (c == 0x7D) {
     stuff = 1;
-  } else if (stuff){
+  } else if (stuff) {
     frskyRxBuffer[bufferIndex++] = c ^ 0x20;
     stuff = 0;
   } else {
@@ -101,34 +101,34 @@ void encodeTargetData(uint8_t c){
   }
 }
 
-void processFrskyPacket(uint8_t *packet){
+void processFrskyPacket(uint8_t *packet) {
   //get package ID
-  switch (packet[1]){
+  switch (packet[1]) {
     case LINKPKT: // A1/A2/RSSI values
       //maybe we can use RSSI here to start an alarm when RSSI level gets low
       break;
     case USRPKT:
       uint8_t numBytes = packet[2];
       for (uint8_t i = 3; i < numBytes; i++) {
-          parseTelemHubByte(packet[i]);
+        parseTelemHubByte(packet[i]);
       }
-      break; 
+      break;
   }
 }
 
-typedef enum{
+typedef enum {
   IDLE = 0,
   DATA_ID,
   DATA_LOW,
   DATA_HIGH,
   STUFF = 0x80
-}STATE;
-  
+} STATE;
+
 #ifdef DEBUG
-  char s[10];
+char s[10];
 #endif
-  
-void parseTelemHubByte(uint8_t c){
+
+void parseTelemHubByte(uint8_t c) {
   static uint8_t dataId;
   static uint8_t byte0;
   static STATE state = IDLE;
@@ -164,13 +164,13 @@ void parseTelemHubByte(uint8_t c){
     return;
   }
   state = IDLE;
-   
-  switch(dataId){
+
+  switch (dataId) {
     case GPS_ALT_BP_ID:
-      #ifndef VARIO
-        alt = int16_t((byte0 << 8) + c);
-        HAS_ALT = true;
-      #endif
+#ifndef VARIO
+      alt = int16_t((byte0 << 8) + c);
+      HAS_ALT = true;
+#endif
       break;
     case GPS_LON_BP_ID:
       lon_bp = (c << 8) + byte0;
@@ -192,22 +192,22 @@ void parseTelemHubByte(uint8_t c){
       break;
     case TEMP2:
 #ifdef DIY_GPS
-    sats = byte0 / 10;
-    fix = byte0 % 10;
+      sats = byte0 / 10;
+      fix = byte0 % 10;
 #else
-    sats = byte0;
+      sats = byte0;
 #endif
-    break;
+      break;
   }
-  if ((NS == 'N' || NS == 'S') && (EW == 'E' || EW == 'W')){
+  if ((NS == 'N' || NS == 'S') && (EW == 'E' || EW == 'W')) {
     HAS_FIX = true;
   }
 }
 
 #if defined(VARIO)
-  void evalVario(int16_t altitude_bp, uint16_t altitude_ap){
-    alt = (int32_t)altitude_bp * 100 + (altitude_bp > 0 ? altitude_ap : -altitude_ap);
-  }
+void evalVario(int16_t altitude_bp, uint16_t altitude_ap) {
+  alt = (int32_t)altitude_bp * 100 + (altitude_bp > 0 ? altitude_ap : -altitude_ap);
+}
 #endif
 #endif
 

@@ -279,8 +279,9 @@ void loop()
         Serial.print(" Lon: "); Serial.print(targetPosition.lon);
         Serial.print(" Distance: "); Serial.print(distance);
         Serial.print(" Heading: "); Serial.print(trackerPosition.heading/10);
-        Serial.print(" Target Heading: "); Serial.println(targetPosition.heading/10);
-        Serial.print(" Target Position: "); Serial.println(targetPosition.lat);
+        Serial.print(" Target Heading: "); Serial.print(targetPosition.heading/10);
+        Serial.print(" Target Position lat: "); Serial.print(targetPosition.lat);
+        Serial.print(" Target Position lon: "); Serial.println(targetPosition.lon);
       #endif
       HAS_FIX = false;
     }
