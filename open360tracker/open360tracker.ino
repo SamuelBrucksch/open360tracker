@@ -200,7 +200,9 @@ void loop()
       i = Serial.parseInt();
     } else if (c == 'D' || c == 'd') {
       d = Serial.parseInt();
-    }
+    }else if (c == 'C' || c == 'c') {
+	calibrate_compass();
+      }
 #endif
     digitalWrite(LED_PIN, HIGH);
   } else {
@@ -277,7 +279,9 @@ void loop()
     Serial.print(" Lon: "); Serial.print(targetPosition.lon);
     Serial.print(" Distance: "); Serial.print(distance);
     Serial.print(" Heading: "); Serial.print(trackerPosition.heading / 10);
-    Serial.print(" Target Heading: "); Serial.println(targetPosition.heading / 10);
+    Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
+        Serial.print(" Target Position lat: "); Serial.print(targetPosition.lat);
+        Serial.print(" Target Position lon: "); Serial.println(targetPosition.lon);
 #endif
     HAS_FIX = false;
   }
