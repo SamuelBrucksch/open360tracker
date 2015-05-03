@@ -19,7 +19,7 @@
 //lat and lon required in units of millionths of a degree -> precision of 5 digits after '.'
 // for example 52.52081 -> 5252081
 //             13.40945 -> 1340945
-typedef struct{
+typedef struct {
   // latitude in units of millionths of a degree
   int32_t lat;
   // longitude in units of millionths of a degree
@@ -30,18 +30,18 @@ typedef struct{
   uint16_t heading;
   // distance from 0 ... 64km
   uint16_t distance;
-} 
+}
 geoCoordinate_t;
 
-typedef struct { 
- bool f0:1; 
- bool f1:1; 
- bool f2:1; 
- bool f3:1; 
- bool f4:1; 
- bool f5:1; 
- bool f6:1; 
- bool f7:1; 
+typedef struct {
+  bool f0: 1;
+  bool f1: 1;
+  bool f2: 1;
+  bool f3: 1;
+  bool f4: 1;
+  bool f5: 1;
+  bool f6: 1;
+  bool f7: 1;
 } PackedBool;
 
 #define HOME_SET          ( (volatile PackedBool*)(&GPIOR0) )->f0
@@ -54,7 +54,7 @@ typedef struct {
 #define NEW_HEADING       ( (volatile PackedBool*)(&GPIOR0) )->f7
 
 #ifdef MFD
-  #define TEST_MODE            ( (volatile PackedBool*)(&GPIOR1) )->f0
+#define TEST_MODE            ( (volatile PackedBool*)(&GPIOR1) )->f0
 #endif
 //#define exampleBool_1_2    ( (volatile PackedBool*)(&GPIOR1) )->f1
 //#define exampleBool_1_3    ( (volatile PackedBool*)(&GPIOR1) )->f2

@@ -29,7 +29,7 @@ float LoadFloatFromEEPROM(uint8_t position)
   data.as_byte[1] = EEPROM.read(position + 1);
   data.as_byte[2] = EEPROM.read(position + 2);
   data.as_byte[3] = EEPROM.read(position + 3);
-  
+
   return data.as_float;
 }
 
@@ -51,7 +51,7 @@ void StoreFloatToEEPROM(float value, uint8_t position)
 {
   // copy to data32_t for easier access
   data32_t tmp = {value};
-  
+
   EEPROM.write(position,     tmp.as_byte[0]);
   EEPROM.write(position + 1, tmp.as_byte[1]);
   EEPROM.write(position + 2, tmp.as_byte[2]);

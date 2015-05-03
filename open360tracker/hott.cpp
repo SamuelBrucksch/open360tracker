@@ -2,20 +2,20 @@
 #ifdef HOTT
 #include "telemetry.h"
 
-int32_t getTargetLat(){
+int32_t getTargetLat() {
   return 0;
 }
 
-int32_t getTargetLon(){
+int32_t getTargetLon() {
   return 0;
 }
 
-int16_t getTargetAlt(){
+int16_t getTargetAlt() {
   return 0;
 }
 
-void encodeTargetData(uint8_t c){
-  
+void encodeTargetData(uint8_t c) {
+
 }
 
 

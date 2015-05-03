@@ -17,7 +17,7 @@
 /* #### Protocol ####
  *
  *  FRSKY_D, FRSKY_X, HOTT, EXTERNAL
- * 
+ *
  *  FRSKY_D -> D-Series
  *  FRSKY_X -> Taranis / XJT
  *  HOTT -> MX12, MX16 and all other HoTT transmitters with telemetry
@@ -26,7 +26,7 @@
  *  MAVLINK -> Mavlink protocol (APM/Pixhawk/...)
  *  SERVOTEST
  */
-#define FRSKY_X
+#define MAVLINK
 
 /* #### Baud Rate ####
  *
@@ -76,7 +76,7 @@
 
 /* #### Compass offset ####
  *
- * If you did not mount your compass with the arrow pointing to the front you can set an offset here. 
+ * If you did not mount your compass with the arrow pointing to the front you can set an offset here.
  *
  * Needs to be multiplied by 10 -> 90° = 900
  *
@@ -115,7 +115,7 @@
 #endif
 
 /* #### Tracker Setup ####
- * 
+ *
  * Start tracking when plane is XXX m away from tracker
  *
  */
@@ -134,11 +134,11 @@
 
 /* #### Do not edit below this line */
 #if TILT_0 < 800 || TILT_0 > 2200 || TILT_90 > 2200  || TILT_90 < 800
-  #error "Tilt servo range invalid. Must be between 800 and 2200."
+#error "Tilt servo range invalid. Must be between 800 and 2200."
 #endif
 
 #if OFFSET < 0 || OFFSET > 3599
-  #error "Offset invalid. Must be between 0° and 359°."
+#error "Offset invalid. Must be between 0° and 359°."
 #endif
 
 #endif
