@@ -9,7 +9,7 @@
 #define MAVLINK_MAX_PAYLOAD_LEN 36
 #include <Mavlink.h>
 
-static int32_t p_lat = 0; // latidude
+static int32_t p_lat = 0; // latitude
 static int32_t p_lon = 0; // longitude
 static int32_t p_alt = 0; // altitude
 static int16_t p_sats = 0; // number of satelites
@@ -31,7 +31,7 @@ int16_t getSats() {
     return p_sats;
 }
 
-int8_t getFixType() {
+uint8_t getFix() {
     return p_fix_type;
 }
 
