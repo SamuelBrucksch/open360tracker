@@ -26,7 +26,7 @@
  *  MAVLINK -> Mavlink protocol (APM/Pixhawk/...)
  *  SERVOTEST
  */
-#define MAVLINK
+#define FRSKY_X
 
 /* #### Baud Rate ####
  *
@@ -118,8 +118,10 @@
  *
  * Start tracking when plane is XXX m away from tracker
  *
+ * It is recommended to start tracking only if plane moved a few meters already. Default: 10m
+ *
  */
-#define START_TRACKING_DISTANCE 0
+#define START_TRACKING_DISTANCE 10
 
 /* ### LCD Display ###
  *

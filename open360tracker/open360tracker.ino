@@ -15,7 +15,10 @@
 #include "telemetry.h"
 #include "math.h"
 #include <TinyGPS.h>
+#ifdef Mavlink
 #include <Mavlink.h>
+#endif
+
 void calcTilt();
 void getError();
 void calculatePID();
@@ -46,17 +49,17 @@ void initGps();
 #endif
 
 #ifdef LCD_DISPLAY
-  //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
-  #if (LCD_DISPLAY == 1)
-    #include <LiquidCrystal_I2C.h>
-    LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7);
-  #elif (LCD_DISPLAY == 2)
-    #include <LiquidCrystal.h>
-    LiquidCrystal lcd(12, 11, 13, 4, 3, 2);
-  #endif
+//download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
+#if (LCD_DISPLAY == I2C)
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7);
+#elif (LCD_DISPLAY == SPI)
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(12, 11, 13, 4, 3, 2);
+#endif
 
-  char lcd_str[24];
-  long lcd_time;
+char lcd_str[24];
+long lcd_time;
 #endif
 
 #ifdef MFD
@@ -88,12 +91,14 @@ void setup()
   HAS_FIX = false;
 #ifndef SERVOTEST
   HOME_SET = false;
+  TRACKING_STARTED = false;
 #else
   HOME_SET = true;
+  TRACKING_STARTED = true;
 #endif
   SETTING_HOME = false;
   PREVIOUS_STATE = true;
-  TRACKING_STARTED = false;
+  
   CURRENT_STATE = true;
   NEW_HEADING = false;
 #ifdef MFD
@@ -206,9 +211,9 @@ void loop()
       i = Serial.parseInt();
     } else if (c == 'D' || c == 'd') {
       d = Serial.parseInt();
-    }else if (c == 'C' || c == 'c') {
-	calibrate_compass();
-      }
+    } else if (c == 'C' || c == 'c') {
+      calibrate_compass();
+    }
 #endif
     digitalWrite(LED_PIN, HIGH);
   } else {
@@ -276,7 +281,9 @@ void loop()
 
     // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
     //distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));
-    targetPosition.distance = TinyGPS::distance_between(trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f, targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f);
+    if (HOME_SET){
+      targetPosition.distance = TinyGPS::distance_between(trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f, targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f);
+    }
     targetPosition.heading = TinyGPS::course_to(trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f, targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f) * 10.0f;
 
     //calcTargetDistanceAndHeading(&trackerPosition, &targetPosition);
@@ -287,7 +294,11 @@ void loop()
     Serial.print(" Distance: "); Serial.print(targetPosition.distance);
     Serial.print(" Heading: "); Serial.print(trackerPosition.heading / 10);
     Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
+#ifdef MAVLINK
     Serial.print(" Target Sats: "); Serial.println(getTargetSats());
+#else
+    Serial.println();
+#endif
 #endif
     HAS_FIX = false;
   }
@@ -392,19 +403,17 @@ void loop()
 #endif
 #endif
 #ifndef MFD
-#if (START_TRACKING_DISTANCE > 0)
-  //Only track if tracking process started.
-  if (!TRACKING_STARTED) {
-    //if plane is START_TRACKING_DISTANCE meter away from tracker start tracking process.
-    if (START_TRACKING_DISTANCE <= targetPosition.distance && HOME_SET) {
-      TRACKING_STARTED = true;
-    }
-  } else {
-#else
   //Only track if home ist set.
   if (HOME_SET) {
+#if (START_TRACKING_DISTANCE > 0)
+    //Only track if tracking process started.
+    if (!TRACKING_STARTED) {
+      //if plane is START_TRACKING_DISTANCE meter away from tracker start tracking process.
+      if (targetPosition.distance >= uint16_t(START_TRACKING_DISTANCE)) {
+        TRACKING_STARTED = true;
+      }
+    }else{
 #endif
-    digitalWrite(LED_PIN, HIGH);
     // only update pan value if there is new data
     if ( NEW_HEADING ) {
       getError();       // Get position error
@@ -414,10 +423,12 @@ void loop()
 #ifndef SERVOTEST
       calcTilt();
 #endif
+#if (START_TRACKING_DISTANCE > 0)
+      }
+#endif
     }
   }
 #endif
-
 }
 
 //Tilt angle alpha = atan(alt/dist)

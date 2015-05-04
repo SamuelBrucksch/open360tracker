@@ -46,6 +46,8 @@ void mavlink_handleMessage(mavlink_message_t* msg) {
       HAS_ALT = true;
       if (p_fix_type > 0) {
         HAS_FIX = true;
+      }else{
+        HAS_FIX = false;  
       }
       break;
     }
