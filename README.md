@@ -46,9 +46,9 @@ Buttons
 =====
 There is a HOME button and a CALIBRATION button. The HOME button is to set the home position of the tracker when no local GPS is present. The CALIBRATION button is to calibrate the compass to your local magnetic field. Press CALIBRATION button for 4s and the tracker will start to rotate to read your magnetic field.
 
-The HOME button needs to be connected to D6 and GND
+The HOME button needs to be connected to D5 and GND
 
-The CALIBRATION button needs to be connected to D5 and GND 
+The CALIBRATION button needs to be connected to D6 and GND 
 
 Tracker GPS
 =====
