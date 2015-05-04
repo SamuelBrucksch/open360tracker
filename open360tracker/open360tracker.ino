@@ -46,11 +46,17 @@ void initGps();
 #endif
 
 #ifdef LCD_DISPLAY
-//download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
-#include <LiquidCrystal_I2C.h>
-LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7);
-char lcd_str[24];
-long lcd_time;
+  //download from https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
+  #if (LCD_DISPLAY == 1)
+    #include <LiquidCrystal_I2C.h>
+    LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7);
+  #elif (LCD_DISPLAY == 2)
+    #include <LiquidCrystal.h>
+    LiquidCrystal lcd(12, 11, 13, 4, 3, 2);
+  #endif
+
+  char lcd_str[24];
+  long lcd_time;
 #endif
 
 #ifdef MFD
