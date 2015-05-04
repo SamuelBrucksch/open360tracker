@@ -254,9 +254,10 @@ void loop()
     targetPosition.heading = getAzimuth() * 10;
 #ifdef DEBUG
     Serial.print("Target alt: "); Serial.print(targetPosition.alt);
-    Serial.print(" Target distance: "); Serial.print(distance);
+    Serial.print(" Target distance: "); Serial.print(targetPosition.distance);
     Serial.print(" Target heading: "); Serial.print(targetPosition.heading / 10);
-    Serial.print(" Tracker heading: "); Serial.println(trackerPosition.heading / 10);
+    Serial.print(" Tracker heading: "); Serial.print(trackerPosition.heading / 10);
+    Serial.print(" Target Sats: "); Serial.println(getTargetSats());
 #endif
 #else
 #ifdef DEBUG
@@ -283,11 +284,10 @@ void loop()
 #ifdef DEBUG
     Serial.print("Lat: "); Serial.print(targetPosition.lat);
     Serial.print(" Lon: "); Serial.print(targetPosition.lon);
-    Serial.print(" Distance: "); Serial.print(distance);
+    Serial.print(" Distance: "); Serial.print(targetPosition.distance);
     Serial.print(" Heading: "); Serial.print(trackerPosition.heading / 10);
     Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
-        Serial.print(" Target Position lat: "); Serial.print(targetPosition.lat);
-        Serial.print(" Target Position lon: "); Serial.println(targetPosition.lon);
+    Serial.print(" Target Sats: "); Serial.println(getTargetSats());
 #endif
     HAS_FIX = false;
   }

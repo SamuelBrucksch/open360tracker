@@ -9,36 +9,75 @@
 #define MAVLINK_MAX_PAYLOAD_LEN 36
 #include <Mavlink.h>
 
-static long p_lat = 0.0;
-static long p_long = 0.0;
-static long p_alt = 0.0;
-static int16_t sats = 0;
+static int32_t p_lat = 0; // latidude
+static int32_t p_lon = 0; // longitude
+static int32_t p_alt = 0; // altitude
+static int16_t p_sats = 0; // number of satelites
+static uint8_t p_fix_type = 0; // GPS lock 0-1=no fix, 2=2D, 3=3D
 
 int32_t getTargetLat() {
-  return p_lat;
+  if (p_lat > 0) {
+    return p_lat;
+  }
+  else {
+    return 0;
+  }
 }
 
 int32_t getTargetLon() {
-  return p_long;
+  if (p_lon > 0) {
+    return p_lon;
+  }
+  else {
+    return 0;
+  }
 }
 
 int16_t getTargetAlt() {
-  return p_alt;
+ if (p_alt > 0) {
+    return p_alt;
+  }
+  else {
+    return 0;
+  }
 }
 
 int16_t getSats() {
-  return sats;
+  if (p_sats > 0) {
+    return p_sats;
+  }
+  else {
+    return 0;
+  }
+}
+
+int8_t getFixType() {
+  if (p_fix_type > 1) {
+    return p_fix_type;
+  }
+  else {
+    return 0;
+  }
 }
 
 void mavlink_handleMessage(mavlink_message_t* msg) {
+  HAS_FIX = true;
+  HAS_ALT = true;
   switch (msg->msgid) {
     case MAVLINK_MSG_ID_GPS_RAW_INT: {
-        p_lat = (float)mavlink_msg_gps_raw_int_get_lat(msg) / 10000000.0;
-        p_long = (float)mavlink_msg_gps_raw_int_get_lon(msg) / 10000000.0;
-        p_alt = (float)mavlink_msg_gps_raw_int_get_alt(msg) / 1000.0;
-        sats = mavlink_msg_gps_raw_int_get_satellites_visible(msg);
-        break;
+      p_lat = mavlink_msg_gps_raw_int_get_lat(msg) / 100;
+      p_lon = mavlink_msg_gps_raw_int_get_lon(msg) / 100;
+      p_fix_type = mavlink_msg_gps_raw_int_get_fix_type(msg);
+      p_sats = mavlink_msg_gps_raw_int_get_satellites_visible(msg);
+      p_alt = mavlink_msg_gps_raw_int_get_alt(msg) / 1000;
+      if (p_alt > 0) {
+        HAS_ALT = true;
       }
+      if (p_sats > 0) {
+        HAS_FIX = true;
+      }
+      break;
+    }
   }
 }
 
