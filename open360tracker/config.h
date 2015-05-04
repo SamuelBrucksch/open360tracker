@@ -126,15 +126,15 @@
  * Uncomment to display data on LCD Display
  *
  * Please choose for the Display Type:
- * 1: I2C
- * 2: SPI
+ * I2C
+ * SPI
  *
  * LCD Display is required for this.
  *
  *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-#define LCD_DISPLAY 1
+#define LCD_DISPLAY I2C
 
 /* #### Do not edit below this line */
 #if TILT_0 < 800 || TILT_0 > 2200 || TILT_90 > 2200  || TILT_90 < 800

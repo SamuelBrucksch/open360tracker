@@ -33,6 +33,9 @@ typedef struct {
 }
 geoCoordinate_t;
 
+#define I2C 1
+#define SPI 2
+
 typedef struct {
   bool f0: 1;
   bool f1: 1;
