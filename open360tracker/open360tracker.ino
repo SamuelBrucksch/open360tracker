@@ -262,7 +262,7 @@ void loop()
     Serial.print(" Target distance: "); Serial.print(targetPosition.distance);
     Serial.print(" Target heading: "); Serial.print(targetPosition.heading / 10);
     Serial.print(" Tracker heading: "); Serial.print(trackerPosition.heading / 10);
-    Serial.print(" Target Sats: "); Serial.println(getTargetSats());
+    Serial.print(" Target Sats: "); Serial.println(getSats());
 #endif
 #else
 #ifdef DEBUG
@@ -295,7 +295,8 @@ void loop()
     Serial.print(" Heading: "); Serial.print(trackerPosition.heading / 10);
     Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
 #ifdef MAVLINK
-    Serial.print(" Target Sats: "); Serial.println(getTargetSats());
+    Serial.print(" Target Sats: "); Serial.print(getSats());
+    Serial.print(" Target Fix Type: "); Serial.println(getTargetFixType());
 #else
     Serial.println();
 #endif

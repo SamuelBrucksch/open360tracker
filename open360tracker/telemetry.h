@@ -21,9 +21,8 @@ uint16_t getAzimuth();
 int32_t getTargetLat();
 int32_t getTargetLon();
 int16_t getSats();
-uint8_t getFix();
+uint8_t getTargetFix();
+uint8_t getTargetFixType();
 #endif
 
 #endif
-
-

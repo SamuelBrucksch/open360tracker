@@ -31,8 +31,17 @@ int16_t getSats() {
     return p_sats;
 }
 
-uint8_t getFix() {
+uint8_t getTargetFixType() {
+  return p_fix_type;
+}
+
+uint8_t getTargetFix() {
+  if (p_fix_type > 1) {		
     return p_fix_type;
+  }
+  else {
+    return 0;
+  }
 }
 
 void mavlink_handleMessage(mavlink_message_t* msg) {
