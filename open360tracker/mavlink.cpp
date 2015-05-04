@@ -16,53 +16,26 @@ static int16_t p_sats = 0; // number of satelites
 static uint8_t p_fix_type = 0; // GPS lock 0-1=no fix, 2=2D, 3=3D
 
 int32_t getTargetLat() {
-  if (p_lat > 0) {
     return p_lat;
-  }
-  else {
-    return 0;
-  }
 }
 
 int32_t getTargetLon() {
-  if (p_lon > 0) {
     return p_lon;
-  }
-  else {
-    return 0;
-  }
 }
 
 int16_t getTargetAlt() {
- if (p_alt > 0) {
     return p_alt;
-  }
-  else {
-    return 0;
-  }
 }
 
 int16_t getSats() {
-  if (p_sats > 0) {
     return p_sats;
-  }
-  else {
-    return 0;
-  }
 }
 
 int8_t getFixType() {
-  if (p_fix_type > 1) {
     return p_fix_type;
-  }
-  else {
-    return 0;
-  }
 }
 
 void mavlink_handleMessage(mavlink_message_t* msg) {
-  HAS_FIX = true;
-  HAS_ALT = true;
   switch (msg->msgid) {
     case MAVLINK_MSG_ID_GPS_RAW_INT: {
       p_lat = mavlink_msg_gps_raw_int_get_lat(msg) / 100;
@@ -70,10 +43,8 @@ void mavlink_handleMessage(mavlink_message_t* msg) {
       p_fix_type = mavlink_msg_gps_raw_int_get_fix_type(msg);
       p_sats = mavlink_msg_gps_raw_int_get_satellites_visible(msg);
       p_alt = mavlink_msg_gps_raw_int_get_alt(msg) / 1000;
-      if (p_alt > 0) {
-        HAS_ALT = true;
-      }
-      if (p_sats > 0) {
+      HAS_ALT = true;
+      if (p_fix_type > 0) {
         HAS_FIX = true;
       }
       break;
