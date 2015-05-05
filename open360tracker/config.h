@@ -26,7 +26,7 @@
  *  MAVLINK -> Mavlink protocol (APM/Pixhawk/...)
  *  SERVOTEST
  */
-#define SERVOTEST
+#define FRSKY_X
 
 /* #### Baud Rate ####
  *
@@ -36,7 +36,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 115200
+#define BAUD 57600
 
 /* #### Tilt servo 0° adjustment ####
  *
@@ -83,7 +83,7 @@
  * Range: 0 ... 3599
  *
  */
-#define OFFSET 900
+#define OFFSET 0
 
 /* #### DIY GPS / Fix Type ####
 *
@@ -94,7 +94,7 @@
 *
 * If you use the native frsky gps or fixtype is not present comment to disable.
 */
-#define DIY_GPS
+//#define DIY_GPS
 
 #ifndef MFD
 /* #### Ground GPS ####
