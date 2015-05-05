@@ -22,6 +22,7 @@
 void calcTilt();
 void getError();
 void calculatePID();
+void getBatterie();
 
 unsigned long time;
 unsigned long calib_timer;
@@ -62,6 +63,15 @@ char lcd_str[24];
 long lcd_time;
 #endif
 
+#ifdef BATTERYMONITORING
+  float sensorV = 0;
+  float sensorV_Temp = 0;
+  int BatCounter = 0;
+  float denominator = (float)BATTERYMONITORING_RESISTOR_2 / (BATTERYMONITORING_RESISTOR_1 + BATTERYMONITORING_RESISTOR_2);
+  float multiplyer = BATTERYMONITORING_RESISTOR_1 / BATTERYMONITORING_RESISTOR_2;
+  float Voltage;
+#endif
+
 #ifdef MFD
 uint16_t distance;
 #endif
@@ -75,6 +85,9 @@ int tilt = 0;
 
 void setup()
 {
+  #ifdef BATTERYMONITORING
+    pinMode(VOLTAGEDIVIDER, INPUT);
+  #endif
 #ifdef LCD_DISPLAY
   lcd.begin(16, 2);
   lcd.setBacklightPin(3, POSITIVE);
@@ -247,6 +260,9 @@ void loop()
       dtostrf(targetPosition.lon / 100000.0f, 10, 5, lcd_str);
       lcd.print(lcd_str);
     }
+    #ifdef BATTERYMONITORING
+      getBatterie();
+    #endif
     lcd_time = millis() + 200;
   }
 #endif
@@ -537,3 +553,12 @@ void initGps() {
 }
 #endif
 
+#ifdef BATTERYMONITORING
+  void getBatterie() {
+    Voltage = analogRead(VOLTAGEDIVIDER); //Hole Wert
+    Voltage = (Voltage / 1024) * multiplyer;
+    Voltage = Voltage / denominator;
+    sensorV = Voltage * BATTERYMONITORING_CORRECTION;
+    Serial.print("V: "); Serial.println(sensorV);
+  }
+#endif

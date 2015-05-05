@@ -15,6 +15,7 @@
 #define LED_PIN 13
 #define GPS_RX_PIN 8
 #define GPS_TX_PIN 7
+#define VOLTAGEDIVIDER A0
 
 //lat and lon required in units of millionths of a degree -> precision of 5 digits after '.'
 // for example 52.52081 -> 5252081

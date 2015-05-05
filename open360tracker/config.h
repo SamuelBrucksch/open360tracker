@@ -5,7 +5,7 @@
  * created by Samuel Brucksch
  *
  */
-//#define DEBUG
+#define DEBUG
 
 /** PID Values
 *
@@ -136,7 +136,20 @@
  *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-#define LCD_DISPLAY I2C
+#define LCD_DISPLAY SPI
+
+/* ### Battery monitoring ###
+ *
+ * Uncomment to monitor your Battery
+ *
+ * Voltage divider is required for this.
+ *
+ */
+#define BATTERYMONITORING
+#define BATTERYMONITORING_RESISTOR_1 7480
+#define BATTERYMONITORING_RESISTOR_2 1500
+#define BATTERYMONITORING_CORRECTION 1.0    // default 5.0
+
 
 /* #### Do not edit below this line */
 #if TILT_0 < 800 || TILT_0 > 2200 || TILT_90 > 2200  || TILT_90 < 800
