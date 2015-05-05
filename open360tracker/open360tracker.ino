@@ -64,12 +64,18 @@ long lcd_time;
 #endif
 
 #ifdef BATTERYMONITORING
-  float Bat_sensorV = 0.0;
-  float Bat_Voltage = 0.0;
-  float Bat_Voltage_Temp = 0.0;
-  int Bat_Counter = 0;
+  #ifndef BATTERYMONITORING_AVERAGE
+    #define BATTERYMONITORING_AVERAGE 2
+  #endif
+  #ifndef BATTERYMONITORING_VREF
+    #define BATTERYMONITORING_VREF 1.1
+  #endif
+  #ifndef BATTERYMONITORING_VREF_SOURCE
+    #define BATTERYMONITORING_VREF_SOURCE INTERNAL
+  #endif
+  uint16_t Bat_ADC_Last[BATTERYMONITORING_AVERAGE];
+  float Bat_Voltage;
   float Bat_denominator = (float)BATTERYMONITORING_RESISTOR_2 / ((float)BATTERYMONITORING_RESISTOR_1 + (float)BATTERYMONITORING_RESISTOR_2);
-  float Bat_multiplyer = (float)BATTERYMONITORING_RESISTOR_1 / (float)BATTERYMONITORING_RESISTOR_2;
 #endif
 
 #ifdef MFD
@@ -87,6 +93,11 @@ void setup()
 {
   #ifdef BATTERYMONITORING
     pinMode(VOLTAGEDIVIDER, INPUT);
+    analogReference(BATTERYMONITORING_VREF_SOURCE);
+    int n = 0;
+    for (n = 0; n < BATTERYMONITORING_AVERAGE; n++) {
+      getBatterie();
+    }
   #endif
 #ifdef LCD_DISPLAY
   lcd.begin(16, 2);
@@ -243,7 +254,11 @@ void loop()
       sprintf(lcd_str, "H:%03u A:%03u", trackerPosition.heading / 10, targetPosition.heading / 10);
 
 #else
-      sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading / 10, targetPosition.heading / 10, getSats());
+      #ifdef BATTERYMONITORING
+        sprintf(lcd_str, "H:%03u V%02u.%01u S:%02d", trackerPosition.heading / 10, (uint16_t)Bat_Voltage,(uint16_t)(Bat_Voltage*10)%10, getSats());
+      #else
+        sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading / 10, targetPosition.heading / 10, getSats());
+      #endif
 #endif
       lcd.print(lcd_str);
       lcd.setCursor(0, 1);
@@ -555,15 +570,18 @@ void initGps() {
 
 #ifdef BATTERYMONITORING
   void getBatterie() {
-    static float Bat_Voltage_last;
-    analogReference(INTERNAL);
-    Bat_Voltage = analogRead(VOLTAGEDIVIDER); //Hole Wert
-    Bat_Voltage = (Bat_Voltage / 1024.0) * 1.1;
-    Bat_Voltage = Bat_Voltage / Bat_denominator;
-    //Bat_Voltage = Bat_Voltage * (float)BATTERYMONITORING_CORRECTION;
-    Bat_sensorV = (Bat_Voltage + Bat_Voltage_last) / 2.0;
-    Bat_Voltage_last = Bat_Voltage;
-    //Bat_sensorV = (Bat_Voltage / 1024) * 5 / ((float)BATTERYMONITORING_RESISTOR_2 / (BATTERYMONITORING_RESISTOR_1 + BATTERYMONITORING_RESISTOR_2));
-    Serial.print("V: "); Serial.println(Bat_sensorV);
+    int n = 0;
+    uint16_t Bat_ADC = (uint16_t)analogRead(VOLTAGEDIVIDER); //Hole Wert
+    uint32_t Bat_AVG = (uint32_t)Bat_ADC;
+    for (n = 0; n < BATTERYMONITORING_AVERAGE; n++) {
+      Bat_AVG += (uint32_t)Bat_ADC_Last[n];
+    }
+    Bat_AVG /= BATTERYMONITORING_AVERAGE + 1;
+    for (n = 0; n < BATTERYMONITORING_AVERAGE - 1; n++) {
+      Bat_ADC_Last[n] = Bat_ADC_Last[n + 1];
+    }
+    Bat_ADC_Last[BATTERYMONITORING_AVERAGE - 1] = Bat_ADC;
+    Bat_Voltage = ((float)Bat_AVG / 1024.0) * BATTERYMONITORING_VREF / Bat_denominator * BATTERYMONITORING_CORRECTION;
+    Serial.print("V: "); Serial.println(Bat_Voltage);
   }
 #endif
