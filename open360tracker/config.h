@@ -10,8 +10,8 @@
 /** PID Values
 *
 */
-#define P 2200 //default 2200
-#define I 80 //default 280
+#define P 5000 //default 2200
+#define I 100 //default 280
 #define D 1000 //default 20000
 
 /* #### Protocol ####
@@ -26,7 +26,7 @@
  *  MAVLINK -> Mavlink protocol (APM/Pixhawk/...)
  *  SERVOTEST
  */
-#define FRSKY_X
+#define SERVOTEST
 
 /* #### Baud Rate ####
  *
@@ -36,7 +36,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 57600
+#define BAUD 115200
 
 /* #### Tilt servo 0° adjustment ####
  *
