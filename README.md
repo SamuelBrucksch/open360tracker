@@ -34,7 +34,11 @@ Heres a list of what might be supported at a later stage:
 
 Current state of the code
 =====
-FRSKY_X and FRSKY_D parsing is working, MFD seems to work. All other protocols are still not tested or uncomplete. I'm still struggling with some minor calculations which i'm currently trying to fix.
+FRSKY_X and FRSKY_D seem to work:
+https://www.youtube.com/watch?v=F41oIQ15KQs
+Its tested in the garden but not in flight yet.
+
+Mavlink is implemented and tested at home, but not in flight yet.
 
 Servos
 =====

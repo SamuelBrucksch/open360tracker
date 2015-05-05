@@ -89,16 +89,16 @@ void setup()
 
   HAS_ALT = false;
   HAS_FIX = false;
-#ifndef SERVOTEST
-  HOME_SET = false;
-  TRACKING_STARTED = false;
-#else
+#ifdef SERVOTEST
   HOME_SET = true;
   TRACKING_STARTED = true;
+#else
+  HOME_SET = false;
+  TRACKING_STARTED = false;
 #endif
   SETTING_HOME = false;
   PREVIOUS_STATE = true;
-  
+
   CURRENT_STATE = true;
   NEW_HEADING = false;
 #ifdef MFD
@@ -186,9 +186,7 @@ void loop()
   if (Serial.available() > 1)
   {
     uint8_t c = Serial.read();
-#ifndef SERVOTEST
-    encodeTargetData(c);
-#else
+#ifdef SERVOTEST
     if (c == 'H' || c == 'h') {
       //target heading in degree
       targetPosition.heading = Serial.parseInt();
@@ -214,6 +212,8 @@ void loop()
     } else if (c == 'C' || c == 'c') {
       calibrate_compass();
     }
+#else
+    encodeTargetData(c);
 #endif
     digitalWrite(LED_PIN, HIGH);
   } else {
@@ -226,10 +226,11 @@ void loop()
     if (millis() % 10000 < 7000) {
       //headings, alt, distance, sats
       lcd.setCursor(0, 0);
-#ifndef MFD
-      sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading / 10, targetPosition.heading / 10, getSats());
-#else
+#ifdef MFD
       sprintf(lcd_str, "H:%03u A:%03u", trackerPosition.heading / 10, targetPosition.heading / 10);
+
+#else
+      sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading / 10, targetPosition.heading / 10, getSats());
 #endif
       lcd.print(lcd_str);
       lcd.setCursor(0, 1);
@@ -281,7 +282,7 @@ void loop()
 
     // calculate distance without haversine. We need this for the slope triangle to get the correct pan value
     //distance = sqrt(sq(trackerPosition.lat - targetPosition.lat) + sq(trackerPosition.lon - targetPosition.lon));
-    if (HOME_SET){
+    if (HOME_SET) {
       targetPosition.distance = TinyGPS::distance_between(trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f, targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f);
     }
     targetPosition.heading = TinyGPS::course_to(trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f, targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f) * 10.0f;
@@ -347,10 +348,10 @@ void loop()
   //only needed if no local gps
   if (!digitalRead(HOME_BUTTON)) {
     //set home
-#ifndef MFD
-    setHome(&trackerPosition, &targetPosition);
-#else
+#idef MFD
     //MFD protocol: set home must be pressed on driver!
+#else
+  setHome(&trackerPosition, &targetPosition);
 #endif
 
   }
@@ -413,16 +414,16 @@ void loop()
       if (targetPosition.distance >= uint16_t(START_TRACKING_DISTANCE)) {
         TRACKING_STARTED = true;
       }
-    }else{
+    } else {
 #endif
-    // only update pan value if there is new data
-    if ( NEW_HEADING ) {
-      getError();       // Get position error
-      calculatePID();   // Calculate the PID output from the error
-      SET_PAN_SERVO_SPEED(PWMOutput);
-      NEW_HEADING = false;
+      // only update pan value if there is new data
+      if ( NEW_HEADING ) {
+        getError();       // Get position error
+        calculatePID();   // Calculate the PID output from the error
+        SET_PAN_SERVO_SPEED(PWMOutput);
+        NEW_HEADING = false;
 #ifndef SERVOTEST
-      calcTilt();
+        calcTilt();
 #endif
 #if (START_TRACKING_DISTANCE > 0)
       }
