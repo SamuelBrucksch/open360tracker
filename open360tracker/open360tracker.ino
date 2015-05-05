@@ -348,7 +348,7 @@ void loop()
   //only needed if no local gps
   if (!digitalRead(HOME_BUTTON)) {
     //set home
-#idef MFD
+#ifdef MFD
     //MFD protocol: set home must be pressed on driver!
 #else
   setHome(&trackerPosition, &targetPosition);
