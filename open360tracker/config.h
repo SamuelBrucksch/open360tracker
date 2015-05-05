@@ -136,7 +136,7 @@
  *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-#define LCD_DISPLAY SPI
+#define LCD_DISPLAY I2C
 
 /* ### Battery monitoring ###
  *
@@ -145,10 +145,10 @@
  * Voltage divider is required for this.
  *
  */
-#define BATTERYMONITORING
-#define BATTERYMONITORING_RESISTOR_1 18000
-#define BATTERYMONITORING_RESISTOR_2 1000
-#define BATTERYMONITORING_CORRECTION 0.9    // default 1.0
+//#define BATTERYMONITORING
+//#define BATTERYMONITORING_RESISTOR_1 18000
+//#define BATTERYMONITORING_RESISTOR_2 1000
+//#define BATTERYMONITORING_CORRECTION 1.0    // default 1.0
 
 /* #### Do not edit below this line */
 #if TILT_0 < 800 || TILT_0 > 2200 || TILT_90 > 2200  || TILT_90 < 800
