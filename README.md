@@ -32,7 +32,7 @@ Heres a list of what might be supported at a later stage:
         direct GPS data (NMEA)
         any other protocol that is open 
 
-Current state of the code
+Current state of the project
 =====
 FRSKY_X and FRSKY_D seem to work:
 https://www.youtube.com/watch?v=F41oIQ15KQs
