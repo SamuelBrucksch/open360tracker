@@ -64,12 +64,12 @@ long lcd_time;
 #endif
 
 #ifdef BATTERYMONITORING
-  float sensorV = 0;
-  float sensorV_Temp = 0;
-  int BatCounter = 0;
-  float denominator = (float)BATTERYMONITORING_RESISTOR_2 / (BATTERYMONITORING_RESISTOR_1 + BATTERYMONITORING_RESISTOR_2);
-  float multiplyer = BATTERYMONITORING_RESISTOR_1 / BATTERYMONITORING_RESISTOR_2;
-  float Voltage;
+  float Bat_sensorV = 0.0;
+  float Bat_Voltage = 0.0;
+  float Bat_Voltage_Temp = 0.0;
+  int Bat_Counter = 0;
+  float Bat_denominator = (float)BATTERYMONITORING_RESISTOR_2 / ((float)BATTERYMONITORING_RESISTOR_1 + (float)BATTERYMONITORING_RESISTOR_2);
+  float Bat_multiplyer = (float)BATTERYMONITORING_RESISTOR_1 / (float)BATTERYMONITORING_RESISTOR_2;
 #endif
 
 #ifdef MFD
@@ -555,10 +555,15 @@ void initGps() {
 
 #ifdef BATTERYMONITORING
   void getBatterie() {
-    Voltage = analogRead(VOLTAGEDIVIDER); //Hole Wert
-    Voltage = (Voltage / 1024) * multiplyer;
-    Voltage = Voltage / denominator;
-    sensorV = Voltage * BATTERYMONITORING_CORRECTION;
-    Serial.print("V: "); Serial.println(sensorV);
+    static float Bat_Voltage_last;
+    analogReference(INTERNAL);
+    Bat_Voltage = analogRead(VOLTAGEDIVIDER); //Hole Wert
+    Bat_Voltage = (Bat_Voltage / 1024.0) * 1.1;
+    Bat_Voltage = Bat_Voltage / Bat_denominator;
+    //Bat_Voltage = Bat_Voltage * (float)BATTERYMONITORING_CORRECTION;
+    Bat_sensorV = (Bat_Voltage + Bat_Voltage_last) / 2.0;
+    Bat_Voltage_last = Bat_Voltage;
+    //Bat_sensorV = (Bat_Voltage / 1024) * 5 / ((float)BATTERYMONITORING_RESISTOR_2 / (BATTERYMONITORING_RESISTOR_1 + BATTERYMONITORING_RESISTOR_2));
+    Serial.print("V: "); Serial.println(Bat_sensorV);
   }
 #endif
