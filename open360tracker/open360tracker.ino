@@ -593,7 +593,13 @@ void initGps() {
     }
     Bat_ADC_Last[BATTERYMONITORING_AVERAGE - 1] = Bat_ADC;
     Bat_Voltage = ((float)Bat_AVG / 1024.0) * BATTERYMONITORING_VREF / Bat_denominator * BATTERYMONITORING_CORRECTION;
-    Serial.print("V: "); Serial.println(Bat_Voltage);
+    #ifdef BUZZER
+      if(BATTERYMONITORING_ALERT >= Bat_Voltage) {
+        int melody[] = {NOTE_DS8, NOTE_DS8, NOTE_DS8};
+        int noteDurations[] = {8, 8, 8};
+        playMelody(melody, noteDurations);
+      }
+    #endif
   }
 #endif
 
