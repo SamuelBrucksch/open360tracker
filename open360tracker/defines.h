@@ -16,6 +16,19 @@
 #define GPS_RX_PIN 8
 #define GPS_TX_PIN 7
 #define VOLTAGEDIVIDER A0
+#define BUZZER_PIN A1
+
+#ifdef BUZZER
+  #define  BUZZER_TONE_c     3830    // 261 Hz 
+  #define  BUZZER_TONE_d     3400    // 294 Hz 
+  #define  BUZZER_TONE_e     3038    // 329 Hz 
+  #define  BUZZER_TONE_f     2864    // 349 Hz 
+  #define  BUZZER_TONE_g     2550    // 392 Hz 
+  #define  BUZZER_TONE_a     2272    // 440 Hz 
+  #define  BUZZER_TONE_b     2028    // 493 Hz 
+  #define  BUZZER_TONE_C     1912    // 523 Hz 
+  #define  BUZZER_TONE_R     0
+#endif
 
 //lat and lon required in units of millionths of a degree -> precision of 5 digits after '.'
 // for example 52.52081 -> 5252081
