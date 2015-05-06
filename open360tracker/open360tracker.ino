@@ -24,7 +24,8 @@ void getError();
 void calculatePID();
 void getBatterie();
 void checkAlarms();
-void beep();
+void playMelody(int melody[], int noteDurations[]);
+void playStart();
 
 unsigned long time;
 unsigned long calib_timer;
