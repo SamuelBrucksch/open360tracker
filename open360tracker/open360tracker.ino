@@ -106,7 +106,6 @@ void setup()
   lcd.home();
   #ifdef LCD_SIZE_ROW
     if (LCD_SIZE_ROW == 4) {
-      lcd.print("                ");
       lcd.setCursor ( 0, 1 );
     }
   #endif
@@ -159,7 +158,6 @@ void setup()
   digitalWrite(HOME_BUTTON, HIGH);
   digitalWrite(CALIB_BUTTON, HIGH);
 
-  Wire.setClock(uint32_t(400000L));
   Wire.begin();
 
   // init pan/tilt servos controlled via hardware pwm
