@@ -23,6 +23,9 @@ void calcTilt();
 void getError();
 void calculatePID();
 void getBatterie();
+void checkAlarms();
+void playMelody(int melody[], int noteDurations[]);
+void playStart();
 
 unsigned long time;
 unsigned long calib_timer;
@@ -186,6 +189,11 @@ void setup()
 #ifdef DEBUG
   Serial.println("Setup finished");
 #endif
+
+  #ifdef BUZZER
+    pinMode(BUZZER_PIN, OUTPUT);
+    playStart();
+  #endif
 }
 
 #ifdef SERVOTEST
@@ -278,6 +286,9 @@ void loop()
     }
     #ifdef BATTERYMONITORING
       getBatterie();
+    #endif
+    #ifdef BUZZER
+      checkAlarms();
     #endif
     lcd_time = millis() + 200;
   }
@@ -583,6 +594,33 @@ void initGps() {
     }
     Bat_ADC_Last[BATTERYMONITORING_AVERAGE - 1] = Bat_ADC;
     Bat_Voltage = ((float)Bat_AVG / 1024.0) * BATTERYMONITORING_VREF / Bat_denominator * BATTERYMONITORING_CORRECTION;
-    Serial.print("V: "); Serial.println(Bat_Voltage);
+    #ifdef BUZZER
+      if(BATTERYMONITORING_ALERT >= Bat_Voltage) {
+        int melody[] = {NOTE_DS8, NOTE_DS8, NOTE_DS8};
+        int noteDurations[] = {8, 8, 8};
+        playMelody(melody, noteDurations);
+      }
+    #endif
+  }
+#endif
+
+#ifdef BUZZER
+  void checkAlarms() {
+    
+  }
+  void playMelody(int melody[], int noteDurations[]) {
+    for (int thisNote = 0; thisNote < 8; thisNote++) {
+      int noteDuration = 1000/noteDurations[thisNote];
+      tone(BUZZER_PIN, melody[thisNote],noteDuration);
+  
+      int pauseBetweenNotes = noteDuration * 1.30;
+      delay(pauseBetweenNotes);
+      noTone(BUZZER_PIN);
+    }
+  }
+  void playStart() {
+    int melody[] = {NOTE_DS4, NOTE_DS4, NOTE_DS4};
+    int noteDurations[] = {8, 8, 8};
+    playMelody(melody, noteDurations);
   }
 #endif

@@ -144,13 +144,24 @@
  *
  * Voltage divider is required for this.
  *
+ * For Alerting you will need a Buzzer!
+ *
  */
 //#define BATTERYMONITORING
 #ifdef BATTERYMONITORING
-//#define BATTERYMONITORING_RESISTOR_1 18000
-//#define BATTERYMONITORING_RESISTOR_2 1000
-//#define BATTERYMONITORING_CORRECTION 1.0    // default 1.0
+  #define BATTERYMONITORING_RESISTOR_1 18000
+  #define BATTERYMONITORING_RESISTOR_2 1000
+  #define BATTERYMONITORING_CORRECTION 1.0    // default 1.0
+  #define BATTERYMONITORING_ALERT 10.0        // Set to a alerting voltage. For 3S 10.0
 #endif
+
+/* ### BUZZER ###
+ *
+ * Uncomment to activate Buzzer
+ *
+ * A connected Buzzer is required
+ */
+//#define BUZZER
 
 /* #### Do not edit below this line */
 #if TILT_0 < 800 || TILT_0 > 2200 || TILT_90 > 2200  || TILT_90 < 800
