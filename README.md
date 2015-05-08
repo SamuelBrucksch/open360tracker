@@ -35,8 +35,10 @@ Heres a list of what might be supported at a later stage:
 Current state of the project
 =====
 FRSKY_X and FRSKY_D seem to work:
-https://www.youtube.com/watch?v=F41oIQ15KQs
-Its tested in the garden but not in flight yet.
+
+[![ScreenShot](http://img.youtube.com/vi/F41oIQ15KQs/0.jpg)](https://www.youtube.com/watch?v=F41oIQ15KQs)
+
+Click the pic to see the video. Its tested in the garden but not in flight yet.
 
 Mavlink is implemented and tested at home, but not in flight yet.
 
