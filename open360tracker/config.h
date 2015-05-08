@@ -137,6 +137,7 @@
  *
  */
 #define LCD_DISPLAY I2C
+#define LCD_SIZE_ROW 2 // default 2
 
 /* ### Battery monitoring ###
  *
