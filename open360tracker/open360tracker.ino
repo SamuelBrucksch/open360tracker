@@ -22,7 +22,7 @@
 void calcTilt();
 void getError();
 void calculatePID();
-void getBatterie();
+void getBatterieVoltage();
 
 unsigned long time;
 unsigned long calib_timer;
@@ -96,7 +96,7 @@ void setup()
     analogReference(BATTERYMONITORING_VREF_SOURCE);
     int n = 0;
     for (n = 0; n < BATTERYMONITORING_AVERAGE; n++) {
-      getBatterie();
+      getBatterieVoltage();
     }
   #endif
 #ifdef LCD_DISPLAY
@@ -277,7 +277,7 @@ void loop()
       lcd.print(lcd_str);
     }
     #ifdef BATTERYMONITORING
-      getBatterie();
+      getBatterieVoltage();
     #endif
     lcd_time = millis() + 200;
   }
@@ -570,7 +570,7 @@ void initGps() {
 #endif
 
 #ifdef BATTERYMONITORING
-  void getBatterie() {
+  void getBatterieVoltage() {
     int n = 0;
     uint16_t Bat_ADC = (uint16_t)analogRead(VOLTAGEDIVIDER); //Hole Wert
     uint32_t Bat_AVG = (uint32_t)Bat_ADC;
