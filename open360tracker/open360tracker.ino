@@ -47,6 +47,7 @@ uint8_t localSats;
 SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
 TinyGPS gps;
 void initGps();
+#define START_TRACKING_DISTANCE 0
 #endif
 
 #ifdef LCD_DISPLAY
@@ -410,21 +411,36 @@ void loop()
     Serial.write(c);
 #endif
     if (gps.encode(c)) {
-      gps.get_position(&trackerPosition.lat, &trackerPosition.lon);
-      trackerPosition.lat = trackerPosition.lat / 10;
-      trackerPosition.lon = trackerPosition.lon / 10;
-      
-      digitalWrite(LED_PIN, HIGH);
-      if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
-        trackerPosition.alt = (int16_t)gps.altitude();
+      unsigned long fix_age;
+      gps.get_position(&trackerPosition.lat, &trackerPosition.lon, &fix_age);
+      if (fix_age == TinyGPS::GPS_INVALID_AGE){
+        //TODO no fix
+        if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
+          localSats = (uint8_t)gps.satellites();
+        }
+        HOME_SET = false;
+      }else if (fix_age >5000){
+        //TODO fix too old, maybe tracker lost fix
+        if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
+          localSats = (uint8_t)gps.satellites();
+        }
+        
+        //attention, if gps is lost, last position will remain. So if gps somehow loses signal and the pos is not nulled in these 5s then it will continue tracking with last pos.
+      }else{
+        //TODO valid data
+        trackerPosition.lat = trackerPosition.lat / 10;
+        trackerPosition.lon = trackerPosition.lon / 10;
+
+        if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
+          trackerPosition.alt = (int16_t)gps.altitude();
+        }
+
+        if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
+          localSats = (uint8_t)gps.satellites();
+        }
+        
+        HOME_SET = true;
       }
-      
-      if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
-        localSats = (uint8_t)gps.satellites();
-      }
-    }
-    else {
-      digitalWrite(LED_PIN, LOW);
     }
   }
 #endif
