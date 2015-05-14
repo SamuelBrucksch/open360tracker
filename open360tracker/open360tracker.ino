@@ -432,7 +432,7 @@ void loop()
         trackerPosition.lon = trackerPosition.lon / 10;
 
         if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
-          trackerPosition.alt = (int16_t)gps.altitude();
+          trackerPosition.alt = int16_t(gps.altitude()/10);
         }
 
         if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
