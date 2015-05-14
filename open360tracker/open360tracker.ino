@@ -432,7 +432,7 @@ void loop()
         trackerPosition.lon = trackerPosition.lon / 10;
 
         if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
-          trackerPosition.alt = int16_t(gps.altitude()/10);
+          trackerPosition.alt = int16_t(gps.altitude()/100);
         }
 
         if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
@@ -440,6 +440,7 @@ void loop()
         }
         
         HOME_SET = true;
+        //Serial.print("Lat: ");Serial.print(trackerPosition.lat);Serial.print(" Lon: ");Serial.print(trackerPosition.lon);Serial.print(" Alt: ");Serial.println(trackerPosition.alt);
       }
     }
   }
