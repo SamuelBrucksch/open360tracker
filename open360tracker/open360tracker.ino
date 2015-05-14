@@ -22,7 +22,7 @@
 void calcTilt();
 void getError();
 void calculatePID();
-void getBatterie();
+void getBatterieVoltage();
 
 unsigned long time;
 unsigned long calib_timer;
@@ -42,11 +42,12 @@ geoCoordinate_t trackerPosition;
 
 //only use tinygps when local gps is used
 #ifdef LOCAL_GPS
-
+uint8_t localSats;
 #include <SoftwareSerial.h>
 SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
 TinyGPS gps;
 void initGps();
+#define START_TRACKING_DISTANCE 0
 #endif
 
 #ifdef LCD_DISPLAY
@@ -96,7 +97,7 @@ void setup()
     analogReference(BATTERYMONITORING_VREF_SOURCE);
     int n = 0;
     for (n = 0; n < BATTERYMONITORING_AVERAGE; n++) {
-      getBatterie();
+      getBatterieVoltage();
     }
   #endif
 #ifdef LCD_DISPLAY
@@ -277,15 +278,23 @@ void loop()
       lcd.setCursor(0, 0);
 #ifdef MFD
       sprintf(lcd_str, "H:%03u A:%03u", trackerPosition.heading / 10, targetPosition.heading / 10);
-
+      lcd.print(lcd_str);
 #else
       #ifdef BATTERYMONITORING
-        sprintf(lcd_str, "H:%03u V%02u.%01u S:%02d", trackerPosition.heading / 10, (uint16_t)Bat_Voltage,(uint16_t)(Bat_Voltage*10)%10, getSats());
+        sprintf(lcd_str, "H:%03u V%02u.%01u ", trackerPosition.heading / 10, (uint16_t)Bat_Voltage,(uint16_t)(Bat_Voltage*10)%10);
       #else
-        sprintf(lcd_str, "H:%03u A:%03u S:%02d", trackerPosition.heading / 10, targetPosition.heading / 10, getSats());
+        sprintf(lcd_str, "H:%03u A:%03u ", trackerPosition.heading / 10, targetPosition.heading / 10);
       #endif
-#endif
+      
       lcd.print(lcd_str);
+      
+      #ifdef LOCAL_GPS
+        sprintf(lcd_str, "S:%02d", localSats);
+      #else
+        sprintf(lcd_str, "S:%02d", getSats());
+      #endif
+        lcd.print(lcd_str);
+#endif
       lcd.setCursor(0, 1);
       sprintf(lcd_str, "A:%05d  D:%05u", targetPosition.alt, targetPosition.distance);
       lcd.print(lcd_str);
@@ -299,7 +308,11 @@ void loop()
       }
       //lat, lon
       lcd.print("T LAT:");
-      dtostrf(targetPosition.lat / 100000.0f, 10, 5, lcd_str);
+      #ifdef LOCAL_GPS
+        dtostrf(trackerPosition.lat / 100000.0f, 10, 5, lcd_str);
+      #else
+        dtostrf(targetPosition.lat / 100000.0f, 10, 5, lcd_str);
+      #endif
       lcd.print(lcd_str);
       if (LCD_SIZE_ROW == 4) {
         lcd.setCursor ( 0, 3 );
@@ -308,11 +321,15 @@ void loop()
         lcd.setCursor(0, 1);
       }
       lcd.print("T LON:");
-      dtostrf(targetPosition.lon / 100000.0f, 10, 5, lcd_str);
+      #ifdef LOCAL_GPS
+        dtostrf(trackerPosition.lon / 100000.0f, 10, 5, lcd_str);
+      #else
+        dtostrf(targetPosition.lon / 100000.0f, 10, 5, lcd_str);
+      #endif
       lcd.print(lcd_str);
     }
     #ifdef BATTERYMONITORING
-      getBatterie();
+      getBatterieVoltage();
     #endif
     lcd_time = millis() + 200;
   }
@@ -429,14 +446,37 @@ void loop()
     Serial.write(c);
 #endif
     if (gps.encode(c)) {
-      gps.get_position(&trackerPosition.lat, &trackerPosition.lon);
-      digitalWrite(LED_PIN, HIGH);
-      if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
-        trackerPosition.alt = (int16_t)gps.altitude();
+      unsigned long fix_age;
+      gps.get_position(&trackerPosition.lat, &trackerPosition.lon, &fix_age);
+      if (fix_age == TinyGPS::GPS_INVALID_AGE){
+        //TODO no fix
+        if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
+          localSats = (uint8_t)gps.satellites();
+        }
+        HOME_SET = false;
+      }else if (fix_age >5000){
+        //TODO fix too old, maybe tracker lost fix
+        if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
+          localSats = (uint8_t)gps.satellites();
+        }
+        
+        //attention, if gps is lost, last position will remain. So if gps somehow loses signal and the pos is not nulled in these 5s then it will continue tracking with last pos.
+      }else{
+        //TODO valid data
+        trackerPosition.lat = trackerPosition.lat / 10;
+        trackerPosition.lon = trackerPosition.lon / 10;
+
+        if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
+          trackerPosition.alt = int16_t(gps.altitude()/100);
+        }
+
+        if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
+          localSats = (uint8_t)gps.satellites();
+        }
+        
+        HOME_SET = true;
+        //Serial.print("Lat: ");Serial.print(trackerPosition.lat);Serial.print(" Lon: ");Serial.print(trackerPosition.lon);Serial.print(" Alt: ");Serial.println(trackerPosition.alt);
       }
-    }
-    else {
-      digitalWrite(LED_PIN, LOW);
     }
   }
 #endif
@@ -605,7 +645,7 @@ void initGps() {
 #endif
 
 #ifdef BATTERYMONITORING
-  void getBatterie() {
+  void getBatterieVoltage() {
     int n = 0;
     uint16_t Bat_ADC = (uint16_t)analogRead(VOLTAGEDIVIDER); //Hole Wert
     uint32_t Bat_AVG = (uint32_t)Bat_ADC;
