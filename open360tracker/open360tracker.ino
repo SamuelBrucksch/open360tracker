@@ -105,20 +105,17 @@ void setup()
   lcd.setBacklightPin(3, POSITIVE);
   lcd.setBacklight(HIGH);
   lcd.home();
-  #ifdef LCD_SIZE_ROW
-    if (LCD_SIZE_ROW == 4) {
+  #if LCD_SIZE_ROW == 4
       lcd.setCursor ( 0, 1 );
-    }
   #endif
   lcd.print(" open360tracker ");
-  #ifdef LCD_SIZE_ROW
-    if (LCD_SIZE_ROW == 4) {
-      lcd.setCursor ( 0, 2 );
-    }
-    else {
-      lcd.setCursor ( 0, 1 );
-    }
+  #if LCD_SIZE_ROW == 4
+    lcd.setCursor ( 0, 2 );
+  #elif LCD_SIZE_ROW == 2
+    lcd.setCursor ( 0, 1 );
   #endif
+  lcd.print(" open360tracker ");
+  lcd.setCursor ( 0, 1 );
   lcd.print("   version ");
   lcd.print(FMW_VERSION);
   lcd.print("  ");
@@ -159,6 +156,7 @@ void setup()
   digitalWrite(HOME_BUTTON, HIGH);
   digitalWrite(CALIB_BUTTON, HIGH);
 
+  Wire.setClock(uint32_t(400000L));
   Wire.begin();
 
   // init pan/tilt servos controlled via hardware pwm
@@ -261,18 +259,16 @@ void loop()
   if (millis() > lcd_time) {
     int lcd_nr;
     //switch screen every X seconds
-    if (LCD_SIZE_ROW == 2) {
+    #if LCD_SIZE_ROW == 2
       if ((millis() % 10000 < 7000)) {
         lcd_nr = 1;
       }
       else {
         lcd_nr = 2;
       }
-    }
-    else if (LCD_SIZE_ROW == 4) {
+    #elif LCD_SIZE_ROW == 4
       lcd_nr = 0;
-    }
-    
+    #endif
     if (lcd_nr == 0 || lcd_nr == 1) {
       //headings, alt, distance, sats
       lcd.setCursor(0, 0);
@@ -296,17 +292,16 @@ void loop()
         lcd.print(lcd_str);
 #endif
       lcd.setCursor(0, 1);
-      sprintf(lcd_str, "A:%05d  D:%05u", targetPosition.alt, targetPosition.distance);
+      sprintf(lcd_str, "A:%05d  D:%05u ", targetPosition.alt, targetPosition.distance);
       lcd.print(lcd_str);
     }
     if (lcd_nr == 0 || lcd_nr == 2) {
-      if (LCD_SIZE_ROW == 4) {
-        lcd.setCursor ( 0, 2 );
-      }
-      else {
-        lcd.setCursor(0, 0);
-      }
       //lat, lon
+      #if LCD_SIZE_ROW == 4
+        lcd.setCursor ( 0, 2 );
+      #else
+        lcd.setCursor(0, 0);
+      #endif
       lcd.print("T LAT:");
       #ifdef LOCAL_GPS
         dtostrf(trackerPosition.lat / 100000.0f, 10, 5, lcd_str);
@@ -314,12 +309,11 @@ void loop()
         dtostrf(targetPosition.lat / 100000.0f, 10, 5, lcd_str);
       #endif
       lcd.print(lcd_str);
-      if (LCD_SIZE_ROW == 4) {
+      #if LCD_SIZE_ROW == 4
         lcd.setCursor ( 0, 3 );
-      }
-      else {
+      #else
         lcd.setCursor(0, 1);
-      }
+      #endif
       lcd.print("T LON:");
       #ifdef LOCAL_GPS
         dtostrf(trackerPosition.lon / 100000.0f, 10, 5, lcd_str);
@@ -415,10 +409,18 @@ void loop()
       //cli();
 #ifdef LCD_DISPLAY
       lcd.clear();
-      lcd.setCursor(0, 0);
+      #if LCD_SIZE_ROW == 4
+        lcd.setCursor(0, 1);
+      #else
+        lcd.setCursor(0, 0);
+      #endif
       //sprintf(lcd_str, "HDG:%03u AZI:%03u", 0, 0);
       lcd.print(" Calibration in ");
-      lcd.setCursor(0, 1);
+      #if LCD_SIZE_ROW == 4
+        lcd.setCursor(0, 2);
+      #else
+        lcd.setCursor(0, 1);
+      #endif
       lcd.print("   progress...  ");
 #endif
       calibrate_compass();
