@@ -182,6 +182,14 @@ void setup()
   lcd_time = millis();
 #endif
 
+  //Setup Timer2 to fire every 1ms
+  TCCR2B = 0x00;        //Disbale Timer2 while we set it up
+  TCNT2  = 130;         //Reset Timer Count to 130 out of 255
+  TIFR2  = 0x00;        //Timer2 INT Flag Reg: Clear Timer Overflow Flag
+  TIMSK2 = 0x01;        //Timer2 INT Reg: Timer2 Overflow Interrupt Enable
+  TCCR2A = 0x00;        //Timer2 Control Reg A: Wave Gen Mode normal
+  TCCR2B = 0x05;        //Timer2 Control Reg B: Timer Prescaler set to 128
+
   time = millis();
 
 #ifdef DEBUG
@@ -193,21 +201,44 @@ void setup()
 long servoTimer = 0;
 #endif
 
+void fastLoop();
+void mediumLoop();
+void slowLoop();
+
+uint8_t fastCount = 0;
+uint8_t mediumCount = 0;
+uint8_t slowCount = 0;
+
+//Timer2 Overflow Interrupt Vector, called every 1ms
+ISR(TIMER2_OVF_vect) {
+  fastCount++;               //Increments the interrupt counter
+  mediumCount++;
+  slowCount++;
+  
+  //75hz loop
+  if(fastCount > 14){
+    fastLoop();
+    fastCount = 0;
+  }
+  
+  //50hz loop
+  if (mediumCount > 20){
+    mediumLoop();
+    mediumCount = 0;
+  }
+  
+  //5hz loop
+  if (slowCount > 200){
+    slowLoop();
+    slowCount = 0;
+  }
+  
+  TCNT2 = 130;           //Reset Timer to 130 out of 255
+  TIFR2 = 0x00;          //Timer2 INT Flag Reg: Clear Timer Overflow Flag
+}; 
+
 void loop()
 {
-#ifdef SERVOTEST
-  if (millis() - servoTimer > 200) {
-    Serial.print("Heading: "); Serial.print(trackerPosition.heading / 10);
-    Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
-    Serial.print(" PAN: "); Serial.print(PWMOutput);
-    Serial.print(" TILT: "); Serial.print(tilt);
-    Serial.print(" P: "); Serial.print(p);
-    Serial.print(" I: "); Serial.print(i);
-    Serial.print(" D: "); Serial.println(d);
-    servoTimer = millis();
-  }
-#endif
-
   //TODO change to telemetry serial port
   if (Serial.available() > 1)
   {
@@ -246,60 +277,6 @@ void loop()
     digitalWrite(LED_PIN, LOW);
   }
 #ifndef SERVOTEST
-#ifdef LCD_DISPLAY
-  if (millis() > lcd_time) {
-    //switch screen every X seconds
-    if (millis() % 10000 < 7000) {
-      //headings, alt, distance, sats
-      lcd.setCursor(0, 0);
-#ifdef MFD
-      sprintf(lcd_str, "H:%03u A:%03u", trackerPosition.heading / 10, targetPosition.heading / 10);
-      lcd.print(lcd_str);
-#else
-      #ifdef BATTERYMONITORING
-        sprintf(lcd_str, "H:%03u V%02u.%01u ", trackerPosition.heading / 10, (uint16_t)Bat_Voltage,(uint16_t)(Bat_Voltage*10)%10);
-      #else
-        sprintf(lcd_str, "H:%03u A:%03u ", trackerPosition.heading / 10, targetPosition.heading / 10);
-      #endif
-      
-      lcd.print(lcd_str);
-      
-      #ifdef LOCAL_GPS
-        sprintf(lcd_str, "S:%02d", localSats);
-      #else
-        sprintf(lcd_str, "S:%02d", getSats());
-      #endif
-        lcd.print(lcd_str);
-#endif
-      lcd.setCursor(0, 1);
-      sprintf(lcd_str, "A:%05d D:%05u ", targetPosition.alt, targetPosition.distance);
-      lcd.print(lcd_str);
-    } else {
-      //lat, lon
-      lcd.setCursor(0, 0);
-      lcd.print("T LAT:");
-      #ifdef LOCAL_GPS
-        dtostrf(trackerPosition.lat / 100000.0f, 10, 5, lcd_str);
-      #else
-        dtostrf(targetPosition.lat / 100000.0f, 10, 5, lcd_str);
-      #endif
-      lcd.print(lcd_str);
-      lcd.setCursor(0, 1);
-      lcd.print("T LON:");
-      #ifdef LOCAL_GPS
-        dtostrf(trackerPosition.lon / 100000.0f, 10, 5, lcd_str);
-      #else
-        dtostrf(targetPosition.lon / 100000.0f, 10, 5, lcd_str);
-      #endif
-      lcd.print(lcd_str);
-    }
-    #ifdef BATTERYMONITORING
-      getBatterieVoltage();
-    #endif
-    lcd_time = millis() + 200;
-  }
-#endif
-
   if (HAS_ALT) {
     targetPosition.alt = getTargetAlt();
 
@@ -307,17 +284,6 @@ void loop()
 #ifdef MFD
     distance = getDistance();
     targetPosition.heading = getAzimuth() * 10;
-#ifdef DEBUG
-    Serial.print("Target alt: "); Serial.print(targetPosition.alt);
-    Serial.print(" Target distance: "); Serial.print(targetPosition.distance);
-    Serial.print(" Target heading: "); Serial.print(targetPosition.heading / 10);
-    Serial.print(" Tracker heading: "); Serial.print(trackerPosition.heading / 10);
-    Serial.print(" Target Sats: "); Serial.println(getSats());
-#endif
-#else
-#ifdef DEBUG
-    Serial.print("Target alt: "); Serial.println(targetPosition.alt);
-#endif
 #endif
 
     HAS_ALT = false;
@@ -337,35 +303,10 @@ void loop()
     targetPosition.heading = TinyGPS::course_to(trackerPosition.lat / 100000.0f, trackerPosition.lon / 100000.0f, targetPosition.lat / 100000.0f, targetPosition.lon / 100000.0f) * 10.0f;
 
     //calcTargetDistanceAndHeading(&trackerPosition, &targetPosition);
-
-#ifdef DEBUG
-    Serial.print("Lat: "); Serial.print(targetPosition.lat);
-    Serial.print(" Lon: "); Serial.print(targetPosition.lon);
-    Serial.print(" Distance: "); Serial.print(targetPosition.distance);
-    Serial.print(" Heading: "); Serial.print(trackerPosition.heading / 10);
-    Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
-#ifdef MAVLINK
-    Serial.print(" Target Sats: "); Serial.print(getSats());
-    Serial.print(" Target Fix Type: "); Serial.println(getTargetFixType());
-#else
-    Serial.println();
-#endif
-#endif
     HAS_FIX = false;
   }
 #endif
-
-
-
 #endif
-  // refresh rate of compass is 75Hz -> 13.333ms to refresh the data
-  // we update the heading every 14ms to get as many samples into the smooth array as possible
-  if (millis() > time) {
-    time = millis() + 14;
-    trackerPosition.heading = getHeading();
-    NEW_HEADING = true;
-  }
-
   CURRENT_STATE = digitalRead(CALIB_BUTTON);
   if (CURRENT_STATE != PREVIOUS_STATE) {
     digitalWrite(LED_PIN, !CURRENT_STATE);
@@ -407,9 +348,7 @@ void loop()
 #else
   if (gpsSerial.available()) {
     uint8_t c = gpsSerial.read();
-#ifdef DEBUG
-    Serial.write(c);
-#endif
+
     if (gps.encode(c)) {
       unsigned long fix_age;
       gps.get_position(&trackerPosition.lat, &trackerPosition.lon, &fix_age);
@@ -623,6 +562,106 @@ void initGps() {
     }
     Bat_ADC_Last[BATTERYMONITORING_AVERAGE - 1] = Bat_ADC;
     Bat_Voltage = ((float)Bat_AVG / 1024.0) * BATTERYMONITORING_VREF / Bat_denominator * BATTERYMONITORING_CORRECTION;
-    Serial.print("V: "); Serial.println(Bat_Voltage);
   }
 #endif
+
+//75Hz -> compass
+void fastLoop(){
+  trackerPosition.heading = getHeading();
+  NEW_HEADING = true;
+}
+
+//50Hz -> servos
+void mediumLoop(){
+  
+}
+
+//5hz -> LCD, debug, battery reading, etc...
+void slowLoop(){
+#ifdef BATTERYMONITORING
+  getBatterieVoltage();
+#endif
+  
+#ifdef DEBUG
+Serial.print("V: "); Serial.print(Bat_Voltage);Serial.print(" ");
+#endif
+  
+#ifdef SERVOTEST
+    Serial.print("Heading: "); Serial.print(trackerPosition.heading / 10);
+    Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
+    Serial.print(" PAN: "); Serial.print(PWMOutput);
+    Serial.print(" TILT: "); Serial.print(tilt);
+    Serial.print(" P: "); Serial.print(p);
+    Serial.print(" I: "); Serial.print(i);
+    Serial.print(" D: "); Serial.println(d);
+#elif defined(MFD)
+  #ifdef DEBUG
+    Serial.print("Target alt: "); Serial.print(targetPosition.alt);
+    Serial.print(" Target distance: "); Serial.print(targetPosition.distance);
+    Serial.print(" Target heading: "); Serial.print(targetPosition.heading / 10);
+    Serial.print(" Tracker heading: "); Serial.print(trackerPosition.heading / 10);
+    Serial.print(" Target Sats: "); Serial.println(getSats());
+  #endif
+  //TODO mfd lcd updates
+#else
+  #ifdef DEBUG
+    Serial.print("Lat: "); Serial.print(targetPosition.lat);
+    Serial.print(" Lon: "); Serial.print(targetPosition.lon);
+    Serial.print(" Distance: "); Serial.print(targetPosition.distance);
+    Serial.print(" Heading: "); Serial.print(trackerPosition.heading / 10);
+    Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
+    #ifdef MAVLINK
+      Serial.print(" Target Sats: "); Serial.print(getSats());
+      Serial.print(" Target Fix Type: "); Serial.printgetTargetFixType());
+    #endif
+    Serial.println();
+  #endif
+  //TODO all other lcd updates
+#endif
+#ifdef LCD_DISPLAY
+    //switch screen every X seconds
+    if (millis() % 10000 < 7000) {
+      //headings, alt, distance, sats
+      lcd.setCursor(0, 0);
+      #ifdef MFD
+        sprintf(lcd_str, "H:%03u A:%03u", trackerPosition.heading / 10, targetPosition.heading / 10);
+        lcd.print(lcd_str);
+      #else
+        #ifdef BATTERYMONITORING
+          sprintf(lcd_str, "H:%03u V%02u.%01u ", trackerPosition.heading / 10, (uint16_t)Bat_Voltage,(uint16_t)(Bat_Voltage*10)%10);
+        #else
+          sprintf(lcd_str, "H:%03u A:%03u ", trackerPosition.heading / 10, targetPosition.heading / 10);
+        #endif
+        lcd.print(lcd_str);
+      
+        #ifdef LOCAL_GPS
+          sprintf(lcd_str, "S:%02d", localSats);
+        #else
+          sprintf(lcd_str, "S:%02d", getSats());
+        #endif
+        lcd.print(lcd_str);
+      #endif
+      lcd.setCursor(0, 1);
+      sprintf(lcd_str, "A:%05d D:%05u ", targetPosition.alt, targetPosition.distance);
+      lcd.print(lcd_str);
+    } else {
+      //lat, lon
+      lcd.setCursor(0, 0);
+      lcd.print("T LAT:");
+      #ifdef LOCAL_GPS
+        dtostrf(trackerPosition.lat / 100000.0f, 10, 5, lcd_str);
+      #else
+        dtostrf(targetPosition.lat / 100000.0f, 10, 5, lcd_str);
+      #endif
+      lcd.print(lcd_str);
+      lcd.setCursor(0, 1);
+      lcd.print("T LON:");
+      #ifdef LOCAL_GPS
+        dtostrf(trackerPosition.lon / 100000.0f, 10, 5, lcd_str);
+      #else
+        dtostrf(targetPosition.lon / 100000.0f, 10, 5, lcd_str);
+      #endif
+      lcd.print(lcd_str);
+    }
+#endif
+}
