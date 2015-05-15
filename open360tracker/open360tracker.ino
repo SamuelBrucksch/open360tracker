@@ -292,7 +292,7 @@ void loop()
         lcd.print(lcd_str);
 #endif
       lcd.setCursor(0, 1);
-      sprintf(lcd_str, "A:%05d  D:%05u ", targetPosition.alt, targetPosition.distance);
+      sprintf(lcd_str, "A:%05d  D:%05u", targetPosition.alt, targetPosition.distance);
       lcd.print(lcd_str);
     }
     if (lcd_nr == 0 || lcd_nr == 2) {
