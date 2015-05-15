@@ -101,10 +101,19 @@ void setup()
     }
   #endif
 #ifdef LCD_DISPLAY
-  lcd.begin(16, 2);
+  lcd.begin(16, LCD_SIZE_ROW);
   lcd.setBacklightPin(3, POSITIVE);
   lcd.setBacklight(HIGH);
   lcd.home();
+  #if LCD_SIZE_ROW == 4
+      lcd.setCursor ( 0, 1 );
+  #endif
+  lcd.print(" open360tracker ");
+  #if LCD_SIZE_ROW == 4
+    lcd.setCursor ( 0, 2 );
+  #elif LCD_SIZE_ROW == 2
+    lcd.setCursor ( 0, 1 );
+  #endif
   lcd.print(" open360tracker ");
   lcd.setCursor ( 0, 1 );
   lcd.print("   version ");
@@ -248,8 +257,19 @@ void loop()
 #ifndef SERVOTEST
 #ifdef LCD_DISPLAY
   if (millis() > lcd_time) {
+    int lcd_nr;
     //switch screen every X seconds
-    if (millis() % 10000 < 7000) {
+    #if LCD_SIZE_ROW == 2
+      if ((millis() % 10000 < 7000)) {
+        lcd_nr = 1;
+      }
+      else {
+        lcd_nr = 2;
+      }
+    #elif LCD_SIZE_ROW == 4
+      lcd_nr = 0;
+    #endif
+    if (lcd_nr == 0 || lcd_nr == 1) {
       //headings, alt, distance, sats
       lcd.setCursor(0, 0);
 #ifdef MFD
@@ -272,11 +292,16 @@ void loop()
         lcd.print(lcd_str);
 #endif
       lcd.setCursor(0, 1);
-      sprintf(lcd_str, "A:%05d D:%05u ", targetPosition.alt, targetPosition.distance);
+      sprintf(lcd_str, "A:%05d  D:%05u", targetPosition.alt, targetPosition.distance);
       lcd.print(lcd_str);
-    } else {
+    }
+    if (lcd_nr == 0 || lcd_nr == 2) {
       //lat, lon
-      lcd.setCursor(0, 0);
+      #if LCD_SIZE_ROW == 4
+        lcd.setCursor ( 0, 2 );
+      #else
+        lcd.setCursor(0, 0);
+      #endif
       lcd.print("T LAT:");
       #ifdef LOCAL_GPS
         dtostrf(trackerPosition.lat / 100000.0f, 10, 5, lcd_str);
@@ -284,7 +309,11 @@ void loop()
         dtostrf(targetPosition.lat / 100000.0f, 10, 5, lcd_str);
       #endif
       lcd.print(lcd_str);
-      lcd.setCursor(0, 1);
+      #if LCD_SIZE_ROW == 4
+        lcd.setCursor ( 0, 3 );
+      #else
+        lcd.setCursor(0, 1);
+      #endif
       lcd.print("T LON:");
       #ifdef LOCAL_GPS
         dtostrf(trackerPosition.lon / 100000.0f, 10, 5, lcd_str);
@@ -380,10 +409,18 @@ void loop()
       //cli();
 #ifdef LCD_DISPLAY
       lcd.clear();
-      lcd.setCursor(0, 0);
+      #if LCD_SIZE_ROW == 4
+        lcd.setCursor(0, 1);
+      #else
+        lcd.setCursor(0, 0);
+      #endif
       //sprintf(lcd_str, "HDG:%03u AZI:%03u", 0, 0);
       lcd.print(" Calibration in ");
-      lcd.setCursor(0, 1);
+      #if LCD_SIZE_ROW == 4
+        lcd.setCursor(0, 2);
+      #else
+        lcd.setCursor(0, 1);
+      #endif
       lcd.print("   progress...  ");
 #endif
       calibrate_compass();
