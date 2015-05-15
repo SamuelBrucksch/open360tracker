@@ -92,14 +92,14 @@ int tilt = 0;
 
 void setup()
 {
-  #ifdef BATTERYMONITORING
-    pinMode(VOLTAGEDIVIDER, INPUT);
-    analogReference(BATTERYMONITORING_VREF_SOURCE);
-    int n = 0;
-    for (n = 0; n < BATTERYMONITORING_AVERAGE; n++) {
-      getBatterieVoltage();
-    }
-  #endif
+#ifdef BATTERYMONITORING
+  pinMode(VOLTAGEDIVIDER, INPUT);
+  analogReference(BATTERYMONITORING_VREF_SOURCE);
+  int n = 0;
+  for (n = 0; n < BATTERYMONITORING_AVERAGE; n++) {
+    getBatterieVoltage();
+  }
+#endif
 #ifdef LCD_DISPLAY
   lcd.begin(16, 2);
   lcd.setBacklightPin(3, POSITIVE);
@@ -147,6 +147,7 @@ void setup()
   digitalWrite(HOME_BUTTON, HIGH);
   digitalWrite(CALIB_BUTTON, HIGH);
 
+  //set i2c to 400kHz
   Wire.setClock(uint32_t(400000L));
   Wire.begin();
 
@@ -202,36 +203,37 @@ long servoTimer = 0;
 #endif
 
 void fastLoop();
-void mediumLoop();
+//void mediumLoop();
 void slowLoop();
 
 uint8_t fastCount = 0;
-uint8_t mediumCount = 0;
+//uint8_t mediumCount = 0;
 uint8_t slowCount = 0;
 
 //Timer2 Overflow Interrupt Vector, called every 1ms
 ISR(TIMER2_OVF_vect) {
-  fastCount++;               //Increments the interrupt counter
-  mediumCount++;
-  slowCount++;
-  
   //75hz loop
   if(fastCount > 14){
     fastLoop();
     fastCount = 0;
   }
   
+  //not required right now
   //50hz loop
-  if (mediumCount > 20){
+  /*if (mediumCount > 20){
     mediumLoop();
     mediumCount = 0;
-  }
+  }*/
   
   //5hz loop
   if (slowCount > 200){
     slowLoop();
     slowCount = 0;
   }
+  
+  fastCount++;               //Increments the interrupt counter
+  //mediumCount++;
+  slowCount++;
   
   TCNT2 = 130;           //Reset Timer to 130 out of 255
   TIFR2 = 0x00;          //Timer2 INT Flag Reg: Clear Timer Overflow Flag
@@ -285,7 +287,6 @@ void loop()
     distance = getDistance();
     targetPosition.heading = getAzimuth() * 10;
 #endif
-
     HAS_ALT = false;
   }
 
@@ -572,9 +573,9 @@ void fastLoop(){
 }
 
 //50Hz -> servos
-void mediumLoop(){
+/*void mediumLoop(){
   
-}
+}*/
 
 //5hz -> LCD, debug, battery reading, etc...
 void slowLoop(){
