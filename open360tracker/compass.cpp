@@ -70,7 +70,6 @@ void initMpu6050(){
   Wire.beginTransmission(MPU6050_Address);
   Wire.write(MPU6050_RA_PWR_MGMT_1);
   Wire.write(MPU6050_PWR1_SLEEP_BIT);
-  Wire.write(1);
   Wire.write(0);
   Wire.endTransmission();
 
@@ -78,7 +77,6 @@ void initMpu6050(){
   Wire.beginTransmission(MPU6050_Address);
   Wire.write(MPU6050_RA_USER_CTRL);
   Wire.write(MPU6050_USERCTRL_I2C_MST_EN_BIT);
-  Wire.write(1);
   Wire.write(0);
   Wire.endTransmission();
   
@@ -86,7 +84,6 @@ void initMpu6050(){
   Wire.beginTransmission(MPU6050_Address);
   Wire.write(MPU6050_RA_INT_PIN_CFG);
   Wire.write(MPU6050_INTCFG_I2C_BYPASS_EN_BIT);
-  Wire.write(1);
   Wire.write(1);
   Wire.endTransmission();
 }
