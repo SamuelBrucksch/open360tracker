@@ -146,7 +146,7 @@ static uint8_t bias_collect(uint8_t bias) {
 }
 
 void initCompass() {
-  #ifdef MPU6060
+  #ifdef MPU6050
     initMpu6050();
   #endif
   
