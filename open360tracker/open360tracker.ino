@@ -375,7 +375,6 @@ void loop()
     Serial.print(" Target Heading: "); Serial.print(targetPosition.heading / 10);
 #ifdef MAVLINK
     Serial.print(" Target Sats: "); Serial.print(getSats());
-    Serial.print(" Target Fix Type: "); Serial.println(getTargetFixType());
 #else
     Serial.println();
 #endif
