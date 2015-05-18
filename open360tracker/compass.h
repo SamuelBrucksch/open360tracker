@@ -43,5 +43,3 @@ void readCalibration();
 void calibrate_compass(void);
 
 #endif
-
-

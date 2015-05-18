@@ -22,48 +22,6 @@ float smoothed[3];
 int magZero[3];
 static uint8_t magInit = 0;
 
-/*#define filterSamples 11
-int xSmooth[filterSamples];
-int ySmooth[filterSamples];
-int zSmooth[filterSamples];
-
-int digitalSmooth(int rawIn, int *sensSmoothArray) {    // "int *sensSmoothArray" passes an array to the function - the asterisk indicates the array name is a pointer
-  int temp;
-  uint8_t j, k, top, bottom;
-  long total;
-  static uint8_t i;
-  static int sorted[filterSamples];
-  boolean done;
-
-  i = (i + 1) % filterSamples;    // increment counter and roll over if necc. -  % (modulo operator) rolls over variable
-  sensSmoothArray[i] = rawIn;                 // input new data into the oldest slot
-
-  for (j = 0; j < filterSamples; j++) { // transfer data array into anther array for sorting and averaging
-    sorted[j] = sensSmoothArray[j];
-  }
-
-  done = 0;                // flag to know when we're done sorting
-  while (done != 1) {      // simple swap sort, sorts numbers from lowest to highest
-    done = 1;
-    for (j = 0; j < (filterSamples - 1); j++) {
-      if (sorted[j] > sorted[j + 1]) {    // numbers are out of order - swap
-        temp = sorted[j + 1];
-        sorted [j + 1] =  sorted[j] ;
-        sorted [j] = temp;
-        done = 0;
-      }
-    }
-  }
-  bottom = max(((filterSamples * 15)  / 100), 1);
-  top = min((((filterSamples * 85) / 100) + 1  ), (filterSamples - 1));   // the + 1 is to make up for asymmetry caused by integer rounding
-  k = 0;
-  total = 0;
-  for ( j = bottom; j < top; j++) {
-    total += sorted[j];  // total remaining indices
-    k++;
-  }
-  return total / k;    // divide by number of samples
-}*/
 #ifdef MPU6050
 void initMpu6050(){
   Wire.beginTransmission(MPU6050_Address); //PWR_MGMT_1    -- DEVICE_RESET 1
@@ -241,7 +199,6 @@ int getHeading() {
   //double heading = atan2(smoothed[1], smoothed[0]) ;
   double heading = atan2((magADC[1]* magGain[1]) - magZero[1], (magADC[0]* magGain[0]) - magZero[0]) ;
   
-  
   if (heading < 0)
     heading += 2 * M_PI;
 
@@ -250,5 +207,3 @@ int getHeading() {
 
   return (int) ((heading * 1800.0 / M_PI) + DECLINATION + OFFSET) % 3600;
 }
-
-
