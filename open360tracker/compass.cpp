@@ -108,7 +108,7 @@ static uint8_t bias_collect(uint8_t bias) {
   for (uint8_t i=0; i<10; i++) {                               // Collect 10 samples
     write(HMC58X3_R_MODE, 1);
     delay(100);
-    while(readRawAxis());                                                  // Get the raw values in case the scales have already been changed.
+    while(!readRawAxis());                                                  // Get the raw values in case the scales have already been changed.
     for (uint8_t axis=0; axis<3; axis++) {
       abs_magADC =  abs(magADC[axis]);
       xyz_total[axis]+= abs_magADC;                            // Since the measurements are noisy, they should be averaged rather than taking the max.
@@ -131,20 +131,19 @@ void initCompass() {
   if (bias_collect(0x010 + HMC_POS_BIAS)) bret = false;
   if (bias_collect(0x010 + HMC_NEG_BIAS)) bret = false;
   
-  if (bret)
+  if (bret){
    for (uint8_t axis=0; axis<3; axis++)
       magGain[axis]=820.0*HMC58X3_X_SELF_TEST_GAUSS*2.0*10.0/xyz_total[axis];  // note: xyz_total[axis] is always positive
-
+  }else{
+    magGain[0] = 1.0;
+    magGain[1] = 1.0;
+    magGain[2] = 1.0;
+  }
   write(HMC58X3_R_CONFA , 0x78 ); //Configuration Register A  -- 0 11 100 00  num samples: 8 ; output rate: 15Hz ; normal measurement mode
   write(HMC58X3_R_CONFB , 0x20 ); //Configuration Register B  -- 001 00000    configuration gain 1.3Ga
   write(HMC58X3_R_MODE  , 0x00 ); //Mode register             -- 000000 00    continuous Conversion Mode
   delay(100);
 
-  if (!bret) { //Something went wrong so get a best guess
-    magGain[0] = 1.0;
-    magGain[1] = 1.0;
-    magGain[2] = 1.0;
-  }
 
   for (uint8_t axis = 0; axis < 3; axis++) {
     magZero[axis] = LoadIntegerFromEEPROM(axis * 2);
