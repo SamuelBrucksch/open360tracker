@@ -64,6 +64,33 @@ int digitalSmooth(int rawIn, int *sensSmoothArray) {    // "int *sensSmoothArray
   }
   return total / k;    // divide by number of samples
 }*/
+#ifdef MPU6050
+void initMpu6050(){
+  //disable sleep
+  Wire.beginTransmission(MPU6050_Address);
+  Wire.write(MPU6050_RA_PWR_MGMT_1);
+  Wire.write(MPU6050_PWR1_SLEEP_BIT);
+  Wire.write(1);
+  Wire.write(0);
+  Wire.endTransmission();
+
+  //disable master mode
+  Wire.beginTransmission(MPU6050_Address);
+  Wire.write(MPU6050_RA_USER_CTRL);
+  Wire.write(MPU6050_USERCTRL_I2C_MST_EN_BIT);
+  Wire.write(1);
+  Wire.write(0);
+  Wire.endTransmission();
+  
+  //enable slave mode
+  Wire.beginTransmission(MPU6050_Address);
+  Wire.write(MPU6050_RA_INT_PIN_CFG);
+  Wire.write(MPU6050_INTCFG_I2C_BYPASS_EN_BIT);
+  Wire.write(1);
+  Wire.write(1);
+  Wire.endTransmission();
+}
+#endif
 
 void write(int address, int data)
 {
@@ -119,6 +146,9 @@ static uint8_t bias_collect(uint8_t bias) {
 }
 
 void initCompass() {
+  #ifdef MPU6060
+    initMpu6050();
+  #endif
   
   bool bret = true;
   write(HMC58X3_R_CONFB, 2 << 5);

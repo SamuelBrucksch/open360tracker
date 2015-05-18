@@ -22,6 +22,16 @@
 #define HMC_POS_BIAS 1
 #define HMC_NEG_BIAS 2
 
+#define MPU6050_ADDRESS_AD0_LOW     0x68 // address pin low (GND), default for InvenSense evaluation board
+#define MPU6050_ADDRESS_AD0_HIGH    0x69 // address pin high (VCC)
+#define MPU6050_Address MPU6050_ADDRESS_AD0_LOW
+#define MPU6050_RA_PWR_MGMT_1       0x6B
+#define MPU6050_PWR1_SLEEP_BIT          6
+#define MPU6050_RA_USER_CTRL        0x6A
+#define MPU6050_USERCTRL_I2C_MST_EN_BIT         5
+#define MPU6050_RA_INT_PIN_CFG      0x37
+#define MPU6050_INTCFG_I2C_BYPASS_EN_BIT    1
+
 //MagnetometerScaled readScaledAxis();
 bool readRawAxis();
 void initCompass();
