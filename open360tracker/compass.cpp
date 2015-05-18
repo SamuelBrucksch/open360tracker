@@ -22,7 +22,7 @@ float smoothed[3];
 int magZero[3];
 static uint8_t magInit = 0;
 
-#define filterSamples 11
+/*#define filterSamples 11
 int xSmooth[filterSamples];
 int ySmooth[filterSamples];
 int zSmooth[filterSamples];
@@ -63,7 +63,7 @@ int digitalSmooth(int rawIn, int *sensSmoothArray) {    // "int *sensSmoothArray
     k++;
   }
   return total / k;    // divide by number of samples
-}
+}*/
 
 void write(int address, int data)
 {
@@ -100,7 +100,7 @@ bool readRawAxis() {
 
 unsigned long timer = 0;
 
-int32_t xyz_total[3] = { 0, 0, 0 };
+static int32_t xyz_total[3] = { 0, 0, 0 };
 static uint8_t bias_collect(uint8_t bias) {
   int16_t abs_magADC;
 
@@ -139,9 +139,9 @@ void initCompass() {
     magGain[1] = 1.0;
     magGain[2] = 1.0;
   }
-  write(HMC58X3_R_CONFA , 0x78 ); //Configuration Register A  -- 0 11 100 00  num samples: 8 ; output rate: 15Hz ; normal measurement mode
-  write(HMC58X3_R_CONFB , 0x20 ); //Configuration Register B  -- 001 00000    configuration gain 1.3Ga
-  write(HMC58X3_R_MODE  , 0x00 ); //Mode register             -- 000000 00    continuous Conversion Mode
+  write(HMC58X3_R_CONFA , 0x78 ); //Configuration Register A  -- output rate: 75Hz ; normal measurement mode
+  write(HMC58X3_R_CONFB , 0x20 ); //Configuration Register B  -- configuration gain 1.3Ga
+  write(HMC58X3_R_MODE  , 0x00 ); //Mode register             -- continuous Conversion Mode
   delay(100);
 
 
@@ -200,12 +200,14 @@ void calibrate_compass() {
 int getHeading() {
   while (!readRawAxis());
 
-  smoothed[0] = (digitalSmooth(magADC[0], xSmooth) * magGain[0]) - magZero[0];
+  /*smoothed[0] = (digitalSmooth(magADC[0], xSmooth) * magGain[0]) - magZero[0];
   smoothed[1] = (digitalSmooth(magADC[1], ySmooth) * magGain[1]) - magZero[1];
-  smoothed[2] = (digitalSmooth(magADC[2], zSmooth) * magGain[2]) - magZero[2];
+  smoothed[2] = (digitalSmooth(magADC[2], zSmooth) * magGain[2]) - magZero[2];*/
 
-  double heading = atan2(smoothed[1], smoothed[0]) ;
-
+  //double heading = atan2(smoothed[1], smoothed[0]) ;
+  double heading = atan2((magADC[1]* magGain[1]) - magZero[1], (magADC[0]* magGain[0]) - magZero[0]) ;
+  
+  
   if (heading < 0)
     heading += 2 * M_PI;
 
