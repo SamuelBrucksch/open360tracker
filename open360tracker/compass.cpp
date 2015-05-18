@@ -100,51 +100,40 @@ bool readRawAxis() {
 
 unsigned long timer = 0;
 
+int32_t xyz_total[3] = { 0, 0, 0 };
+static uint8_t bias_collect(uint8_t bias) {
+  int16_t abs_magADC;
+
+  write(HMC58X3_R_CONFA, bias);            // Reg A DOR=0x010 + MS1,MS0 set to pos or negative bias
+  for (uint8_t i=0; i<10; i++) {                               // Collect 10 samples
+    write(HMC58X3_R_MODE, 1);
+    delay(100);
+    while(readRawAxis());                                                  // Get the raw values in case the scales have already been changed.
+    for (uint8_t axis=0; axis<3; axis++) {
+      abs_magADC =  abs(magADC[axis]);
+      xyz_total[axis]+= abs_magADC;                            // Since the measurements are noisy, they should be averaged rather than taking the max.
+      if ((int16_t)(1<<12) < abs_magADC) return false;         // Detect saturation.   if false Breaks out of the for loop.  No sense in continuing if we saturated.
+    }
+  }
+  return true;
+}
 
 void initCompass() {
-  int32_t xyz_total[3] = { 0, 0, 0 };
+  
   bool bret = true;
-  write(HMC58X3_R_CONFA, 0x010 + HMC_POS_BIAS);
   write(HMC58X3_R_CONFB, 2 << 5);
   write(HMC58X3_R_MODE, 1);
   delay(100);
+  
+  //get one sample and discard it
   while (!readRawAxis());
-
-  for (uint8_t i = 0; i < 10; i++) {
-    write(HMC58X3_R_MODE, 1);
-    delay(100);
-    while (!readRawAxis());
-    xyz_total[0] += magADC[0];
-    xyz_total[1] += magADC[1];
-    xyz_total[2] += magADC[2];
-    if (-(1 << 12) >= min(magADC[0], min(magADC[1], magADC[2]))) {
-      bret = false;
-      break;  // Breaks out of the for loop.  No sense in continuing if we saturated.
-    }
-  }
-
-  write(HMC58X3_R_CONFA, 0x010 + HMC_NEG_BIAS);
-
-  for (uint8_t i = 0; i < 10; i++) {
-    write(HMC58X3_R_MODE, 1);
-    delay(100);
-    while (!readRawAxis());
-
-    // Since the measurements are noisy, they should be averaged.
-    xyz_total[0] -= magADC[0];
-    xyz_total[1] -= magADC[1];
-    xyz_total[2] -= magADC[2];
-
-    // Detect saturation.
-    if (-(1 << 12) >= min(magADC[0], min(magADC[1], magADC[2]))) {
-      bret = false;
-      break;  // Breaks out of the for loop.  No sense in continuing if we saturated.
-    }
-  }
-
-  magGain[0] = fabs(820.0 * HMC58X3_X_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[0]);
-  magGain[1] = fabs(820.0 * HMC58X3_Y_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[1]);
-  magGain[2] = fabs(820.0 * HMC58X3_Z_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[2]);
+  
+  if (bias_collect(0x010 + HMC_POS_BIAS)) bret = false;
+  if (bias_collect(0x010 + HMC_NEG_BIAS)) bret = false;
+  
+  if (bret)
+   for (uint8_t axis=0; axis<3; axis++)
+      magGain[axis]=820.0*HMC58X3_X_SELF_TEST_GAUSS*2.0*10.0/xyz_total[axis];  // note: xyz_total[axis] is always positive
 
   write(HMC58X3_R_CONFA , 0x78 ); //Configuration Register A  -- 0 11 100 00  num samples: 8 ; output rate: 15Hz ; normal measurement mode
   write(HMC58X3_R_CONFB , 0x20 ); //Configuration Register B  -- 001 00000    configuration gain 1.3Ga
