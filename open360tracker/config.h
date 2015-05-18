@@ -7,6 +7,13 @@
  */
 //#define DEBUG
 
+/* MPU6050 config
+ * 
+ * If multiwii board uses an MPU6050 and compass is connected to its bypass port we need to enable this to configure the compass over the MPU6050
+ *
+ */
+#define MPU6050
+
 /** PID Values
 *
 */
@@ -54,7 +61,7 @@
  *
  *  Enter PWM value of Servo for not moving
  */
-#define PAN_0 1485
+#define PAN_0 1470
 
 /* #### Pan servo minimum required speed ####
  *
@@ -83,7 +90,7 @@
  * Range: 0 ... 3599
  *
  */
-#define OFFSET 0
+#define OFFSET 900
 
 /* #### DIY GPS / Fix Type ####
 *
@@ -110,8 +117,8 @@
  * does not work when in MFD mode
  */
 //#define LOCAL_GPS
-#define MTK
-#define GPS_BAUDRATE 38400
+//#define MTK
+#define GPS_BAUDRATE 9600
 #endif
 
 /* #### Tracker Setup ####
@@ -136,7 +143,7 @@
  *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-#define LCD_DISPLAY I2C
+//#define LCD_DISPLAY I2C
 
 /* ### Battery monitoring ###
  *
@@ -158,7 +165,7 @@
 #endif
 
 #if OFFSET < 0 || OFFSET > 3599
-#error "Offset invalid. Must be between 0° and 359°."
+#error "Offset invalid. Must be between 0 and 3599."
 #endif
 
 #endif
