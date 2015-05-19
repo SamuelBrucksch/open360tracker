@@ -33,7 +33,16 @@
  *  MAVLINK -> Mavlink protocol (APM/Pixhawk/...)
  *  SERVOTEST
  */
-#define FRSKY_X
+#define MAVLINK
+
+/* MAVLINK hacks
+ * 
+ * if no gps fix type or satellites are transmitted, but only coordinates then uncomment
+ *
+ */
+#define MAVLINK_NO_FIX
+#define MAVLINK_NO_SATS
+
 
 /* #### Baud Rate ####
  *
@@ -43,7 +52,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 57600
+#define BAUD 115200
 
 /* #### Tilt servo 0° adjustment ####
  *

@@ -38,12 +38,28 @@ void mavlink_handleMessage(mavlink_message_t* msg) {
       p_sats = mavlink_msg_gps_raw_int_get_satellites_visible(msg);
       p_alt = mavlink_msg_gps_raw_int_get_alt(msg) / 1000;
       HAS_ALT = true;
-      // fix_type: GPS lock 0-1=no fix, 2=2D, 3=3D
-      if (mavlink_msg_gps_raw_int_get_fix_type(msg) > 1) { 
-        HAS_FIX = true;
-      }else{
-        HAS_FIX = false;  
-      }
+      
+      #ifdef MAVLINK_NO_FIX
+        #ifdef MAVLINK_NO_SATS
+          //we blindly trust the data that is coming in -> needed for MFD mavlink implementation
+          if (p_lat != 0 || p_lon != 0){
+            HAS_FIX = true;
+          }else{
+            HAS_FIX = false;
+          }
+        #else
+          if (p_sats > 0){
+            HAS_FIX = true;  
+          }
+        #endif
+      #else
+        // fix_type: GPS lock 0-1=no fix, 2=2D, 3=3D
+        if (mavlink_msg_gps_raw_int_get_fix_type(msg) > 1) { 
+          HAS_FIX = true;
+        }else{
+          HAS_FIX = false;  
+        }
+      #endif
       break;
     }
   }
