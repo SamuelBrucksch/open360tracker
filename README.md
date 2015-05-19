@@ -20,6 +20,9 @@ FRSKY_X, FRSKY_D and MAVLINK seem to work:
 
 Click the pic to see the video. Its tested in the garden but not in flight yet.
 
+
+For furter information, please have a look at our Wiki Howto's:
+
 [Servos](https://github.com/SamuelBrucksch/open360tracker/wiki/Servos)
 
 [Buttons](https://github.com/SamuelBrucksch/open360tracker/wiki/Buttons)
