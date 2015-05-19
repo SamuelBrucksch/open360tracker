@@ -22,7 +22,6 @@ float smoothed[3];
 int magZero[3];
 static uint8_t magInit = 0;
 
-#ifdef MPU6050
 void initMpu6050(){
   Wire.beginTransmission(MPU6050_Address); //PWR_MGMT_1    -- DEVICE_RESET 1
   Wire.write(0x6B);
@@ -52,7 +51,6 @@ void initMpu6050(){
   Wire.write(0x02);
   Wire.endTransmission();
 }
-#endif
 
 void write(int address, int data)
 {
@@ -108,9 +106,7 @@ static uint8_t bias_collect(uint8_t bias) {
 }
 
 void initCompass() {
-  #ifdef MPU6050
-    initMpu6050();
-  #endif
+  initMpu6050();
   
   bool bret = true;
   write(HMC58X3_R_CONFB, 2 << 5);

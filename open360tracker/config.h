@@ -7,13 +7,6 @@
  */
 //#define DEBUG
 
-/* MPU6050 config
- * 
- * If multiwii board uses an MPU6050 and compass is connected to its bypass port we need to enable this to configure the compass over the MPU6050
- *
- */
-#define MPU6050
-
 /** PID Values
 *
 */
@@ -35,15 +28,6 @@
  */
 #define MAVLINK
 
-/* MAVLINK hacks
- * 
- * if no gps fix type or satellites are transmitted, but only coordinates then uncomment
- *
- */
-#define MAVLINK_NO_FIX
-#define MAVLINK_NO_SATS
-
-
 /* #### Baud Rate ####
  *
  * baud rate of telemetry input
@@ -52,7 +36,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 115200
+#define BAUD 9600
 
 /* #### Tilt servo 0° adjustment ####
  *
@@ -152,7 +136,7 @@
  *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-//#define LCD_DISPLAY I2C
+#define LCD_DISPLAY I2C
 
 /* ### Battery monitoring ###
  *
@@ -163,9 +147,9 @@
  */
 //#define BATTERYMONITORING
 #ifdef BATTERYMONITORING
-  #define BATTERYMONITORING_RESISTOR_1 18000
-  #define BATTERYMONITORING_RESISTOR_2 1000
-  #define BATTERYMONITORING_CORRECTION 1.0    // default 1.0
+//#define BATTERYMONITORING_RESISTOR_1 18000
+//#define BATTERYMONITORING_RESISTOR_2 1000
+//#define BATTERYMONITORING_CORRECTION 1.0    // default 1.0
 #endif
 
 /* #### Do not edit below this line */
