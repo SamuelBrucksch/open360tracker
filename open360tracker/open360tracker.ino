@@ -303,11 +303,7 @@ void loop()
         lcd.setCursor(0, 0);
       #endif
       lcd.print("T LAT:");
-      #ifdef LOCAL_GPS
-        dtostrf(trackerPosition.lat / 100000.0f, 10, 5, lcd_str);
-      #else
-        dtostrf(targetPosition.lat / 100000.0f, 10, 5, lcd_str);
-      #endif
+      dtostrf(targetPosition.lat / 100000.0f, 10, 5, lcd_str);
       lcd.print(lcd_str);
       #if LCD_SIZE_ROW == 4
         lcd.setCursor ( 0, 3 );
@@ -315,11 +311,7 @@ void loop()
         lcd.setCursor(0, 1);
       #endif
       lcd.print("T LON:");
-      #ifdef LOCAL_GPS
-        dtostrf(trackerPosition.lon / 100000.0f, 10, 5, lcd_str);
-      #else
-        dtostrf(targetPosition.lon / 100000.0f, 10, 5, lcd_str);
-      #endif
+      dtostrf(targetPosition.lon / 100000.0f, 10, 5, lcd_str);
       lcd.print(lcd_str);
     }
     #ifdef BATTERYMONITORING

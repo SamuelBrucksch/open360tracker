@@ -22,47 +22,34 @@ float smoothed[3];
 int magZero[3];
 static uint8_t magInit = 0;
 
-#define filterSamples 11
-int xSmooth[filterSamples];
-int ySmooth[filterSamples];
-int zSmooth[filterSamples];
+void initMpu6050(){
+  Wire.beginTransmission(MPU6050_Address); //PWR_MGMT_1    -- DEVICE_RESET 1
+  Wire.write(0x6B);
+  Wire.write(0x80);
+  Wire.endTransmission();
+  delay(50);
 
-int digitalSmooth(int rawIn, int *sensSmoothArray) {    // "int *sensSmoothArray" passes an array to the function - the asterisk indicates the array name is a pointer
-  int temp;
-  uint8_t j, k, top, bottom;
-  long total;
-  static uint8_t i;
-  static int sorted[filterSamples];
-  boolean done;
-
-  i = (i + 1) % filterSamples;    // increment counter and roll over if necc. -  % (modulo operator) rolls over variable
-  sensSmoothArray[i] = rawIn;                 // input new data into the oldest slot
-
-  for (j = 0; j < filterSamples; j++) { // transfer data array into anther array for sorting and averaging
-    sorted[j] = sensSmoothArray[j];
-  }
-
-  done = 0;                // flag to know when we're done sorting
-  while (done != 1) {      // simple swap sort, sorts numbers from lowest to highest
-    done = 1;
-    for (j = 0; j < (filterSamples - 1); j++) {
-      if (sorted[j] > sorted[j + 1]) {    // numbers are out of order - swap
-        temp = sorted[j + 1];
-        sorted [j + 1] =  sorted[j] ;
-        sorted [j] = temp;
-        done = 0;
-      }
-    }
-  }
-  bottom = max(((filterSamples * 15)  / 100), 1);
-  top = min((((filterSamples * 85) / 100) + 1  ), (filterSamples - 1));   // the + 1 is to make up for asymmetry caused by integer rounding
-  k = 0;
-  total = 0;
-  for ( j = bottom; j < top; j++) {
-    total += sorted[j];  // total remaining indices
-    k++;
-  }
-  return total / k;    // divide by number of samples
+  Wire.beginTransmission(MPU6050_Address); //PWR_MGMT_1    -- SLEEP 0; CYCLE 0; TEMP_DIS 0; CLKSEL 3 (PLL with Z Gyro reference)
+  Wire.write(0x6B);
+  Wire.write(0x03);
+  Wire.endTransmission();
+  
+  Wire.beginTransmission(MPU6050_Address); ///CONFIG        -- EXT_SYNC_SET 0 (disable input pin for data sync) ; default DLPF_CFG = 0 => ACC bandwidth = 260Hz  GYRO bandwidth = 256Hz)
+  Wire.write(0x1A);
+  Wire.write(0x00);
+  Wire.endTransmission();
+  
+  Wire.beginTransmission(MPU6050_Address); //GYRO_CONFIG   -- FS_SEL = 3: Full scale set to 2000 deg/sec
+  Wire.write(0x1B);
+  Wire.write(0x18);
+  Wire.endTransmission();
+  
+  
+  // enable I2C bypass for AUX I2C
+  Wire.beginTransmission(MPU6050_Address);
+  Wire.write(0x37);
+  Wire.write(0x02);
+  Wire.endTransmission();
 }
 
 void write(int address, int data)
@@ -100,62 +87,51 @@ bool readRawAxis() {
 
 unsigned long timer = 0;
 
+static int32_t xyz_total[3] = { 0, 0, 0 };
+static uint8_t bias_collect(uint8_t bias) {
+  int16_t abs_magADC;
+
+  write(HMC58X3_R_CONFA, bias);            // Reg A DOR=0x010 + MS1,MS0 set to pos or negative bias
+  for (uint8_t i=0; i<10; i++) {                               // Collect 10 samples
+    write(HMC58X3_R_MODE, 1);
+    delay(100);
+    while(!readRawAxis());                                                  // Get the raw values in case the scales have already been changed.
+    for (uint8_t axis=0; axis<3; axis++) {
+      abs_magADC =  abs(magADC[axis]);
+      xyz_total[axis]+= abs_magADC;                            // Since the measurements are noisy, they should be averaged rather than taking the max.
+      if ((int16_t)(1<<12) < abs_magADC) return false;         // Detect saturation.   if false Breaks out of the for loop.  No sense in continuing if we saturated.
+    }
+  }
+  return true;
+}
 
 void initCompass() {
-  int32_t xyz_total[3] = { 0, 0, 0 };
+  initMpu6050();
+  
   bool bret = true;
-  write(HMC58X3_R_CONFA, 0x010 + HMC_POS_BIAS);
   write(HMC58X3_R_CONFB, 2 << 5);
   write(HMC58X3_R_MODE, 1);
   delay(100);
+  
+  //get one sample and discard it
   while (!readRawAxis());
-
-  for (uint8_t i = 0; i < 10; i++) {
-    write(HMC58X3_R_MODE, 1);
-    delay(100);
-    while (!readRawAxis());
-    xyz_total[0] += magADC[0];
-    xyz_total[1] += magADC[1];
-    xyz_total[2] += magADC[2];
-    if (-(1 << 12) >= min(magADC[0], min(magADC[1], magADC[2]))) {
-      bret = false;
-      break;  // Breaks out of the for loop.  No sense in continuing if we saturated.
-    }
-  }
-
-  write(HMC58X3_R_CONFA, 0x010 + HMC_NEG_BIAS);
-
-  for (uint8_t i = 0; i < 10; i++) {
-    write(HMC58X3_R_MODE, 1);
-    delay(100);
-    while (!readRawAxis());
-
-    // Since the measurements are noisy, they should be averaged.
-    xyz_total[0] -= magADC[0];
-    xyz_total[1] -= magADC[1];
-    xyz_total[2] -= magADC[2];
-
-    // Detect saturation.
-    if (-(1 << 12) >= min(magADC[0], min(magADC[1], magADC[2]))) {
-      bret = false;
-      break;  // Breaks out of the for loop.  No sense in continuing if we saturated.
-    }
-  }
-
-  magGain[0] = fabs(820.0 * HMC58X3_X_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[0]);
-  magGain[1] = fabs(820.0 * HMC58X3_Y_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[1]);
-  magGain[2] = fabs(820.0 * HMC58X3_Z_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[2]);
-
-  write(HMC58X3_R_CONFA , 0x78 ); //Configuration Register A  -- 0 11 100 00  num samples: 8 ; output rate: 15Hz ; normal measurement mode
-  write(HMC58X3_R_CONFB , 0x20 ); //Configuration Register B  -- 001 00000    configuration gain 1.3Ga
-  write(HMC58X3_R_MODE  , 0x00 ); //Mode register             -- 000000 00    continuous Conversion Mode
-  delay(100);
-
-  if (!bret) { //Something went wrong so get a best guess
+  
+  if (bias_collect(0x010 + HMC_POS_BIAS)) bret = false;
+  if (bias_collect(0x010 + HMC_NEG_BIAS)) bret = false;
+  
+  if (bret){
+   for (uint8_t axis=0; axis<3; axis++)
+      magGain[axis]=820.0*HMC58X3_X_SELF_TEST_GAUSS*2.0*10.0/xyz_total[axis];  // note: xyz_total[axis] is always positive
+  }else{
     magGain[0] = 1.0;
     magGain[1] = 1.0;
     magGain[2] = 1.0;
   }
+  write(HMC58X3_R_CONFA , 0x78 ); //Configuration Register A  -- output rate: 75Hz ; normal measurement mode
+  write(HMC58X3_R_CONFB , 0x20 ); //Configuration Register B  -- configuration gain 1.3Ga
+  write(HMC58X3_R_MODE  , 0x00 ); //Mode register             -- continuous Conversion Mode
+  delay(100);
+
 
   for (uint8_t axis = 0; axis < 3; axis++) {
     magZero[axis] = LoadIntegerFromEEPROM(axis * 2);
@@ -212,12 +188,13 @@ void calibrate_compass() {
 int getHeading() {
   while (!readRawAxis());
 
-  smoothed[0] = (digitalSmooth(magADC[0], xSmooth) * magGain[0]) - magZero[0];
+  /*smoothed[0] = (digitalSmooth(magADC[0], xSmooth) * magGain[0]) - magZero[0];
   smoothed[1] = (digitalSmooth(magADC[1], ySmooth) * magGain[1]) - magZero[1];
-  smoothed[2] = (digitalSmooth(magADC[2], zSmooth) * magGain[2]) - magZero[2];
+  smoothed[2] = (digitalSmooth(magADC[2], zSmooth) * magGain[2]) - magZero[2];*/
 
-  double heading = atan2(smoothed[1], smoothed[0]) ;
-
+  //double heading = atan2(smoothed[1], smoothed[0]) ;
+  double heading = atan2((magADC[1]* magGain[1]) - magZero[1], (magADC[0]* magGain[0]) - magZero[0]) ;
+  
   if (heading < 0)
     heading += 2 * M_PI;
 
@@ -226,5 +203,3 @@ int getHeading() {
 
   return (int) ((heading * 1800.0 / M_PI) + DECLINATION + OFFSET) % 3600;
 }
-
-

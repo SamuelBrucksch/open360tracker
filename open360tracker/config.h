@@ -26,7 +26,7 @@
  *  MAVLINK -> Mavlink protocol (APM/Pixhawk/...)
  *  SERVOTEST
  */
-#define FRSKY_X
+#define MAVLINK
 
 /* #### Baud Rate ####
  *
@@ -36,7 +36,7 @@
  * 115200 for RVOSD (RVGS)
  * ??? for HoTT
  */
-#define BAUD 57600
+#define BAUD 9600
 
 /* #### Tilt servo 0° adjustment ####
  *
@@ -54,7 +54,7 @@
  *
  *  Enter PWM value of Servo for not moving
  */
-#define PAN_0 1485
+#define PAN_0 1470
 
 /* #### Pan servo minimum required speed ####
  *
@@ -83,7 +83,7 @@
  * Range: 0 ... 3599
  *
  */
-#define OFFSET 0
+#define OFFSET 900
 
 /* #### DIY GPS / Fix Type ####
 *
@@ -110,8 +110,8 @@
  * does not work when in MFD mode
  */
 //#define LOCAL_GPS
-#define MTK
-#define GPS_BAUDRATE 38400
+//#define MTK
+#define GPS_BAUDRATE 9600
 #endif
 
 /* #### Tracker Setup ####
@@ -159,7 +159,7 @@
 #endif
 
 #if OFFSET < 0 || OFFSET > 3599
-#error "Offset invalid. Must be between 0° and 359°."
+#error "Offset invalid. Must be between 0 and 3599."
 #endif
 
 #endif
