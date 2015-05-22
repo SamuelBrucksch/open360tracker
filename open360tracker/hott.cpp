@@ -10,7 +10,7 @@ int32_t getTargetLon() {
   return 0;
 }
 
-int16_t getTargetAlt() {
+int32_t getTargetAlt() {
   return 0;
 }
 
