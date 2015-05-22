@@ -76,8 +76,8 @@ int32_t getTargetLon() {
   return lon;
 }
 
-int16_t getTargetAlt() {
-  return altitude;
+int32_t getTargetAlt() {
+  return altitude*100;
 }
 
 int16_t getSats() {
