@@ -541,7 +541,7 @@ void calcTilt() {
     alpha = 90;
   }
   else {
-    alpha = toDeg(atan(float(targetPosition.alt - trackerPosition.alt) / targetPosition.distance));
+    alpha = toDeg(atan(float(targetPosition.alt - trackerPosition.alt) / (targetPosition.distance *100.0f)));
   }
   //just for current tests, later we will have negative tilt as well
   if (alpha < 0)
