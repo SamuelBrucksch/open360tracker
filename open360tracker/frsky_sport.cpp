@@ -54,7 +54,7 @@ uint8_t frskyRxBuffer[FRSKY_RX_PACKET_SIZE];
 uint8_t telemetryState = TELEMETRY_INIT;
 
 //alt in m
-int16_t alt;
+int32_t alt;
 uint8_t sats;
 uint8_t fix;
 
@@ -83,7 +83,7 @@ int32_t getTargetLon() {
   return value;
 }
 
-int16_t getTargetAlt() {
+int32_t getTargetAlt() {
   return alt;
 }
 
@@ -93,7 +93,10 @@ void processHubPacket(uint8_t id, uint16_t value)
     return;
   switch (id) {
     case GPS_ALT_BP_ID:
-      alt = value;
+      alt = value*100;
+      break;
+    case GPS_ALT_AP_ID:
+      alt += value;
       HAS_ALT = true;
       break;
     case GPS_LONG_BP_ID:
@@ -180,7 +183,7 @@ void processSportPacket(uint8_t *packet)
         //uint32_t course = SPORT_DATA_U32(packet)/100;
       }
       else if (appId >= GPS_ALT_FIRST_ID && appId <= GPS_ALT_LAST_ID) {
-        alt = SPORT_DATA_S32(packet) / 100;
+        alt = SPORT_DATA_S32(packet);
         HAS_ALT = true;
       }
       else if (appId >= GPS_LONG_LATI_FIRST_ID && appId <= GPS_LONG_LATI_LAST_ID) {
