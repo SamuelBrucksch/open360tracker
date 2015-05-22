@@ -205,5 +205,4 @@ void parseTelemHubByte(uint8_t c) {
   }
 }
 #endif
-#endif
 
