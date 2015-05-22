@@ -292,7 +292,7 @@ void loop()
         lcd.print(lcd_str);
 #endif
       lcd.setCursor(0, 1);
-      sprintf(lcd_str, "A:%05d  D:%05u", targetPosition.alt, targetPosition.distance);
+      sprintf(lcd_str, "A:%05d  D:%05u", targetPosition.alt/100, targetPosition.distance);
       lcd.print(lcd_str);
     }
     if (lcd_nr == 0 || lcd_nr == 2) {
@@ -329,7 +329,7 @@ void loop()
     distance = getDistance();
     targetPosition.heading = getAzimuth() * 10;
 #ifdef DEBUG
-    Serial.print("Target alt: "); Serial.print(targetPosition.alt);
+    Serial.print("Target alt: "); Serial.print(targetPosition.alt/100);
     Serial.print(" Target distance: "); Serial.print(targetPosition.distance);
     Serial.print(" Target heading: "); Serial.print(targetPosition.heading / 10);
     Serial.print(" Tracker heading: "); Serial.print(trackerPosition.heading / 10);
@@ -337,7 +337,7 @@ void loop()
 #endif
 #else
 #ifdef DEBUG
-    Serial.print("Target alt: "); Serial.println(targetPosition.alt);
+    Serial.print("Target alt: "); Serial.println(targetPosition.alt/100);
 #endif
 #endif
 
@@ -460,7 +460,7 @@ void loop()
         trackerPosition.lon = trackerPosition.lon / 10;
 
         if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
-          trackerPosition.alt = int16_t(gps.altitude()/100);
+          trackerPosition.alt = int16_t(gps.altitude());
         }
 
         if (gps.satellites() != TinyGPS::GPS_INVALID_SATELLITES){
