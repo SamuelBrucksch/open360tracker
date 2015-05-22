@@ -44,7 +44,7 @@ enum FrSkyDataState {
   STATE_DATA_XOR,
 };
 
-int16_t alt;
+int32_t alt;
 uint16_t NS;
 uint16_t EW;
 uint8_t sats;
@@ -67,7 +67,7 @@ int32_t getTargetLon() {
   return value;
 }
 
-int16_t getTargetAlt() {
+int32_t getTargetAlt() {
   return alt;
 }
 
@@ -167,10 +167,11 @@ void parseTelemHubByte(uint8_t c) {
 
   switch (dataId) {
     case GPS_ALT_BP_ID:
-#ifndef VARIO
-      alt = int16_t((byte0 << 8) + c);
+      alt = int32_t(((byte0 << 8) + c)*100);
+      break;
+    case GPS_ALT_AP_ID:
+      alt += (int32_t(((byte0 << 8) + c));
       HAS_ALT = true;
-#endif
       break;
     case GPS_LON_BP_ID:
       lon_bp = (c << 8) + byte0;
