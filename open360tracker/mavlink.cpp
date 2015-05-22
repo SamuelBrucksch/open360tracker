@@ -36,7 +36,7 @@ void mavlink_handleMessage(mavlink_message_t* msg) {
       p_lat = mavlink_msg_gps_raw_int_get_lat(msg) / 100;
       p_lon = mavlink_msg_gps_raw_int_get_lon(msg) / 100;
       p_sats = mavlink_msg_gps_raw_int_get_satellites_visible(msg);
-      p_alt = mavlink_msg_gps_raw_int_get_alt(msg) / 1000;
+      p_alt = mavlink_msg_gps_raw_int_get_alt(msg) / 10;
       HAS_ALT = true;
 
       // fix_type: GPS lock 0-1=no fix, 2=2D, 3=3D
@@ -49,7 +49,7 @@ void mavlink_handleMessage(mavlink_message_t* msg) {
     case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
       p_lat = mavlink_msg_global_position_int_get_lat(msg) / 100;
       p_lon = mavlink_msg_global_position_int_get_lon(msg) / 100;
-      p_alt = mavlink_msg_global_position_int_get_alt(msg) / 1000;
+      p_alt = mavlink_msg_global_position_int_get_alt(msg) / 10;
       HAS_ALT = true;
 
       if (p_lat != 0 || p_lon != 0) {

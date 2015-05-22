@@ -8,7 +8,7 @@
 
 
 //alt in meter
-int16_t getTargetAlt();
+int32_t getTargetAlt();
 void encodeTargetData(uint8_t c);
 
 #ifdef MFD
