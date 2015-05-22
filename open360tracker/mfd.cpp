@@ -20,8 +20,9 @@ uint16_t getAzimuth() {
   return azimuth;
 }
 
-int16_t getTargetAlt() {
-  return alt_neg * alt;
+//we need alt in cm -> *100
+int32_t getTargetAlt() {
+  return alt_neg * alt*100;
 }
 
 uint8_t state = 0;
