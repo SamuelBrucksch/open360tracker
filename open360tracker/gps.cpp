@@ -6,7 +6,7 @@
 #include <TinyGPS.h>
 TinyGPS gps;
 
-int16_t alt;
+int32_t alt;
 int32_t lat;
 int32_t lon;
 
@@ -18,7 +18,7 @@ int32_t getTargetLon() {
   return lon;
 }
 
-int16_t getTargetAlt() {
+int32_t getTargetAlt() {
   return alt;
 }
 
@@ -40,7 +40,7 @@ void encodeTargetData(uint8_t c) {
     }
 
     if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
-      alt = (int16_t)gps.altitude();
+      alt = (int32_t)gps.altitude();
       hasAlt = true;
     } else {
       hasAlt = false;
