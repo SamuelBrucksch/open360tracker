@@ -204,11 +204,6 @@ void parseTelemHubByte(uint8_t c) {
     HAS_FIX = true;
   }
 }
-
-#if defined(VARIO)
-void evalVario(int16_t altitude_bp, uint16_t altitude_ap) {
-  alt = (int32_t)altitude_bp * 100 + (altitude_bp > 0 ? altitude_ap : -altitude_ap);
-}
 #endif
 #endif
 
