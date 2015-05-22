@@ -536,19 +536,25 @@ void loop()
 //Tilt angle alpha = atan(alt/dist)
 void calcTilt() {
   uint16_t alpha = 0;
-  //prevent division by 0
+  
+  int32_t alt_difference = targetPosition.alt - trackerPosition.alt;
+  
+  //we do not accept negative alt yet
+  if (alt_difference < 0)
+    alt_difference = 0;
+  
   if (targetPosition.distance == 0) {
-    alpha = 90;
-  }
-  else {
-    alpha = toDeg(atan(float(targetPosition.alt - trackerPosition.alt) / targetPosition.distance));
+    //we assume distance is 1 to avoid division by zero
+    alpha = toDeg(atan(alt_difference)*10);
+  } else {
+    alpha = toDeg(atan(alt_difference / targetPosition.distance * 100.0f)*10);
   }
   //just for current tests, later we will have negative tilt as well
   if (alpha < 0)
     alpha = 0;
-  else if (alpha > 90)
-    alpha = 90;
-  SET_TILT_SERVO_SPEED(map(alpha, 0, 90, TILT_0, TILT_90));
+  else if (alpha > 900)
+    alpha = 900;
+  SET_TILT_SERVO_SPEED(map(alpha, 0, 900, TILT_0, TILT_90));
 }
 
 void getError(void)
