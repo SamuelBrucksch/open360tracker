@@ -25,8 +25,8 @@ typedef struct {
   int32_t lat;
   // longitude in units of millionths of a degree
   int32_t lon;
-  // altitude ranging from -32.768m to 32.767m
-  int16_t alt;
+  // altitude in cm
+  int32_t alt;
   // heading in 0-359° *10
   uint16_t heading;
   // distance from 0 ... 64km
