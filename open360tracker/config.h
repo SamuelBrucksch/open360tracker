@@ -24,9 +24,10 @@
  *  RVOSD
  *  MFD -> MFD protocol will not work with local GPS!!!!
  *  MAVLINK -> Mavlink protocol (APM/Pixhawk/...)
+ *  GPS_TELEMETRY -> direct NMEA input
  *  SERVOTEST
  */
-#define MAVLINK
+#define GPS_TELEMETRY
 
 /* #### Baud Rate ####
  *
@@ -109,7 +110,7 @@
  *
  * does not work when in MFD mode
  */
-//#define LOCAL_GPS
+#define LOCAL_GPS
 //#define MTK
 #define GPS_BAUDRATE 9600
 #endif
@@ -136,7 +137,7 @@
  *  Requires modified LiquidCrystal library: https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
  *
  */
-#define LCD_DISPLAY I2C
+//#define LCD_DISPLAY I2C
 #define LCD_SIZE_ROW 2 // default 2
 
 /* ### Battery monitoring ###

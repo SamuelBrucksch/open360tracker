@@ -4,7 +4,7 @@
 #include <avr/io.h>
 
 #include <TinyGPS.h>
-TinyGPS gps;
+TinyGPS remoteGps;
 
 int16_t alt;
 int32_t lat;
@@ -23,31 +23,26 @@ int16_t getTargetAlt() {
 }
 
 void encodeTargetData(uint8_t c) {
-  if (gps.encode(c)) {
-    float flat, flon;
+  if (remoteGps.encode(c)) {
     unsigned long fix_age;
-    gps.f_get_position(&flat, &flon, &fix_age);
-
+    remoteGps.get_position(&lat, &lon, &fix_age);
+    
     if (fix_age == TinyGPS::GPS_INVALID_AGE) {
-      hasFix = false;
-    }
-    else if (fix_age > 5000) {
-      hasFix = false;
-    }
-    else {
-      gps.get_position(&lat, &lon);
-      hasFix = true;
-    }
-
-    if (gps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
-      alt = (int16_t)gps.altitude();
-      hasAlt = true;
+      HAS_FIX = false;
+    } else if (fix_age > 5000) {
+      HAS_FIX = false;
     } else {
-      hasAlt = false;
+      //TODO valid data
+      lat = lat / 10;
+      lon = lon / 10;
+
+      if (remoteGps.altitude() != TinyGPS::GPS_INVALID_ALTITUDE) {
+        alt = int16_t(remoteGps.altitude() / 100);
+        HAS_ALT = true;
+      }
+      HAS_FIX = true;
     }
   }
 }
 
 #endif
-
-
