@@ -536,13 +536,21 @@ void loop()
 //Tilt angle alpha = atan(alt/dist)
 void calcTilt() {
   uint16_t alpha = 0;
+  
+  //this will fix an error where the tracker randomly points up when plane is lower than tracker
+  if (targetPosition.alt < trackerPosition.alt){
+    targetPosition.alt = trackerPosition.alt;
+  }
+  
   //prevent division by 0
   if (targetPosition.distance == 0) {
-    alpha = 90;
+    // in larger altitude 1m distance shouldnt mess up the calculation.
+    //e.g. in 100m height and dist 1 the angle is 89.4° which is actually accurate enough
+    targetPosition.distance = 1;
   }
-  else {
-    alpha = toDeg(atan(float(targetPosition.alt - trackerPosition.alt) / targetPosition.distance));
-  }
+
+  alpha = toDeg(atan(float(targetPosition.alt - trackerPosition.alt) / targetPosition.distance));
+
   //just for current tests, later we will have negative tilt as well
   if (alpha < 0)
     alpha = 0;
