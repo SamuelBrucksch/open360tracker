@@ -10,15 +10,23 @@ The slipring offers free 360° continuous rotation without the hassle of twisted
 
 The initial version will make use of the Frsky Protocol as there are so many different easy to build arduino projects that support all kinds of flight controls.
 
-Heres you can find a list of what might be supported: [Protocols](https://github.com/SamuelBrucksch/open360tracker/wiki/Protocols)
+Here you can find a list of protocols that are supported: [Protocols](https://github.com/SamuelBrucksch/open360tracker/wiki/Protocols)
 
 Current state of the project
 =====
 FRSKY_X, FRSKY_D and MAVLINK seem to work:
 
+Short Test in the garden:
+
 [![ScreenShot](http://img.youtube.com/vi/F41oIQ15KQs/0.jpg)](https://www.youtube.com/watch?v=F41oIQ15KQs)
 
-Click the pic to see the video. Its tested in the garden but not in flight yet.
+First in flight video:
+
+[![ScreenShot](http://img.youtube.com/vi/KduENCHV0qc/0.jpg)](https://www.youtube.com/watch?v=KduENCHV0qc)
+
+Short Video of tracker working on the ground:
+
+[![ScreenShot](http://img.youtube.com/vi/t7Wg0ki7fN8/0.jpg)](https://www.youtube.com/watch?v=t7Wg0ki7fN8)
 
 
 For furter information, please have a look at our Wiki Howto's:
