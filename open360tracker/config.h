@@ -14,6 +14,13 @@
 #define I 100 //default 280
 #define D 1000 //default 20000
 
+/* #### Atmega 2560 ####
+ *
+ *  If using Atmega 2560 we do not need softserial, so uncomment if using an atema 2560
+ */
+//#define MEGA
+
+
 /* #### Protocol ####
  *
  *  FRSKY_D, FRSKY_X, HOTT, EXTERNAL

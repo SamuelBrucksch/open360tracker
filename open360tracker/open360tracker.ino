@@ -43,8 +43,13 @@ geoCoordinate_t trackerPosition;
 //only use tinygps when local gps is used
 #ifdef LOCAL_GPS
 uint8_t localSats;
-#include <SoftwareSerial.h>
-SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
+#ifdef MEGA
+  #define gpsSerial Serial1
+#else
+  #include <SoftwareSerial.h>
+  SoftwareSerial gpsSerial(GPS_RX_PIN, GPS_TX_PIN);
+#endif
+
 TinyGPS gps;
 void initGps();
 #define START_TRACKING_DISTANCE 0
