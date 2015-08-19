@@ -10,12 +10,21 @@
 
 #define FMW_VERSION "0.1"
 
-#define HOME_BUTTON 5
-#define CALIB_BUTTON 6
-#define LED_PIN 13
-#define GPS_RX_PIN 8
-#define GPS_TX_PIN 7
-#define VOLTAGEDIVIDER A0
+#ifdef APM
+  #define HOME_BUTTON 8
+  #define CALIB_BUTTON 9
+  #define LED_PIN 6
+  #define VOLTAGEDIVIDER A0
+  #define BUZZER_PIN A1
+#else
+  #define HOME_BUTTON 5
+  #define CALIB_BUTTON 6
+  #define LED_PIN 13
+  #define GPS_RX_PIN 8
+  #define GPS_TX_PIN 7
+  #define VOLTAGEDIVIDER A0
+  #define BUZZER_PIN A1
+#endif
 
 //lat and lon required in units of millionths of a degree -> precision of 5 digits after '.'
 // for example 52.52081 -> 5252081
@@ -74,5 +83,3 @@ typedef struct {
 #define meter2feet(value) value * 3.2808399
 #define feet2meter(value) value * 0.3048
 #endif
-
-
