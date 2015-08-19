@@ -23,7 +23,7 @@ inline void initServos()
   // Set OC1A (PB1) and OC1B (PB2) to output.
   // these are our hardware PWM ports.
 
-  #ifdef APM
+  #ifdef MEGA
     DDRB |= _BV(PORTB6) | _BV(PORTB5);
   #else
     DDRB |= _BV(PORTB1) | _BV(PORTB2);

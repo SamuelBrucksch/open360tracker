@@ -10,7 +10,7 @@
 
 #define FMW_VERSION "0.1"
 
-#ifdef APM
+#ifdef MEGA
   #define HOME_BUTTON 8
   #define CALIB_BUTTON 9
   #define LED_PIN 6

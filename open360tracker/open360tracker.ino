@@ -43,7 +43,8 @@ geoCoordinate_t trackerPosition;
 //only use tinygps when local gps is used
 #ifdef LOCAL_GPS
 uint8_t localSats;
-#ifdef APM
+
+#ifdef MEGA
   #define gpsSerial Serial1
 #else
   #include <SoftwareSerial.h>
