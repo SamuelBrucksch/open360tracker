@@ -22,7 +22,12 @@ inline void initServos()
 {
   // Set OC1A (PB1) and OC1B (PB2) to output.
   // these are our hardware PWM ports.
-  DDRB |= _BV(PORTB1) | _BV(PORTB2);
+
+  #ifdef APM
+    DDRB |= _BV(PORTB6) | _BV(PORTB5);
+  #else
+    DDRB |= _BV(PORTB1) | _BV(PORTB2);
+  #endif
 
   // Setup of Timer1, Prescaler 8, 16bit fast pwm
   TCCR1A = _BV(WGM11) | _BV(COM1A1) | _BV(COM1B1);
@@ -35,5 +40,3 @@ inline void initServos()
 }
 
 #endif
-
-

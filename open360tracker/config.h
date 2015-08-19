@@ -16,10 +16,11 @@
 
 /* #### Atmega 2560 ####
  *
- *  If using Atmega 2560 we do not need softserial, so uncomment if using an atema 2560
+ *  If using an APM or Atmega 2560 we do not need softserial, so uncomment if using an atema 2560
+ *  
+ *  APM -> APM & other MEGA Boards
  */
-//#define MEGA
-
+//#define APM
 
 /* #### Protocol ####
  *
