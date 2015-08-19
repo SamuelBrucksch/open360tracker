@@ -58,8 +58,8 @@ int8_t latsign;
 int8_t lonsign;
 uint16_t lat_bp;
 uint16_t lon_bp;
-uint16_t lat_ap;
-uint16_t lon_ap;
+uint32_t lat_ap;
+uint32_t lon_ap;
 
 int32_t lat = 0;
 int32_t lon = 0;
@@ -69,7 +69,7 @@ uint8_t index = 0;
 uint8_t frame_started = 0;
 uint8_t checksum_started = 0;
 uint8_t metric = 0;
-
+uint8_t checksum_index = 0;
 
 int32_t getTargetLat() {
   return lat;
@@ -87,6 +87,8 @@ int16_t getSats() {
   return (int16_t)sats;
 }
 
+
+
 void encodeTargetData(uint8_t c) {
   if (c == '$' && !frame_started){
     frame_started = true;
@@ -102,6 +104,7 @@ void encodeTargetData(uint8_t c) {
     alt = 0;
     sats = 0;
     altsign = 0;
+    checksum_index = 0;
     return;
   } 
   else if (c == 'R' && frame_started){
@@ -116,10 +119,24 @@ void encodeTargetData(uint8_t c) {
     checksum_started = true;
     return;
   }
-  else if ((c == '\r' || c == '\n') && frame_started){
+  /*else if ((c == '\r' || c == '\n') && frame_started){
     if (checksum_read == checksum_calculation){
       lat = gpsToLong(latsign, lat_bp, lat_ap);
       lon = gpsToLong(lonsign, lon_bp, lon_ap);
+
+      // data is ready
+      HAS_FIX = true;
+      HAS_ALT = true;
+    }
+    else{
+      //needed?
+    }
+    frame_started = false;
+  }*/
+  else if (checksum_index == 2){
+    if (checksum_read == checksum_calculation){
+      lat = gpsToLong(latsign, lat_bp, uint16_t(lat_ap/100));
+      lon = gpsToLong(lonsign, lon_bp, uint16_t(lon_ap/100));
 
       // data is ready
       HAS_FIX = true;
@@ -133,6 +150,7 @@ void encodeTargetData(uint8_t c) {
 
   if (frame_started){
     if (checksum_started){
+      checksum_index++;
       checksum_read *= 16;
       if (c >= '0' && c <= '9'){
         checksum_read += (c - '0');
@@ -249,11 +267,10 @@ void encodeTargetData(uint8_t c) {
   case 23:
     sats *= 10;
     sats += c - '0';
+    break;
   default:
     break;
   }
-
-
 }
 #endif
 
