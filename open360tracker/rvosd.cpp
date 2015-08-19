@@ -1,18 +1,20 @@
 /*
 This code is written by Samuel Brucksch
-
+ 
  it will decode the RVOSD telemetry protocol and will convert it into values the open360tracker can understand
-
+ 
  $1,1,00040291,00.000000,N,000.000000,W,+00000,+00000,000,0000,0000,000,+000,000,089,089,089,089,1160,0000,00004,0004,00,000,0026,*00
-
+ 
  It is sent 25 times/S, 115200, 8N1.
-
+ 
  $
  Validity (1 valid, 0 invalid)
  Units (1 metric, 0 imperial)
  HHMMSSmm (hour|minutes|seconds|tenth of seconds)
- ddmm.mmmm, N/S (Latitude)
- dddmm.mmmm,E/W (Longitude)
+ ddmm.mmmm, 
+ N/S (Latitude)
+ dddmm.mmmm,
+ E/W (Longitude)
  +/- altitude (relative)
  +/- altitude (absolute)
  Roll (0 to 255)
@@ -33,20 +35,16 @@ This code is written by Samuel Brucksch
  RSSI
  Temp
  *checksum
-
-
+ 
+ 
  Checksum is everything XORed from "$" to "temperature".
-*/
+ */
 #include "config.h"
 #ifdef RVOSD
 
 #include "telemetry.h"
 #include "frsky_common.h"
 
-unsigned char buffer_index = 0;
-unsigned char commacount = 0;
-unsigned char buffer[10];
-uint8_t checksum = 0;
 uint8_t dot_found = 0;
 
 uint16_t checksum_calculation = 0;
@@ -65,8 +63,13 @@ uint16_t lon_ap;
 
 int32_t lat = 0;
 int32_t lon = 0;
-int16_t altitude = 0;
 uint8_t sats = 0;
+
+uint8_t index = 0;
+uint8_t frame_started = 0;
+uint8_t checksum_started = 0;
+uint8_t metric = 0;
+
 
 int32_t getTargetLat() {
   return lat;
@@ -77,7 +80,7 @@ int32_t getTargetLon() {
 }
 
 int16_t getTargetAlt() {
-  return altitude;
+  return altsign*alt;
 }
 
 int16_t getSats() {
@@ -85,215 +88,174 @@ int16_t getSats() {
 }
 
 void encodeTargetData(uint8_t c) {
-  //only enable this to debug telemtry data. Else debug output will be flooded with rvosd protocol output.
-#ifdef DEBUG
-  //Serial.write(c);
-#endif
-
-  //wait for frame to start
-  if (c != '$' && buffer_index == 0) {
-    return;
-  }
-  if (c == '$') {
-    //frame started
-    checksum = false;
-    commacount = 0;
-    buffer_index = 0;
+  if (c == '$' && !frame_started){
+    frame_started = true;
+    checksum_started = false;
     checksum_calculation = 0;
     checksum_read = 0;
-  }
-  else if (c == '*') {
-    //frame end -> checksum
-    checksum = true;
-  }
-
-  if (buffer_index < sizeof(buffer)) {
-    buffer[buffer_index] = c;
-  }
-  else if (buffer_index > 9) {
-    buffer_index = 0;
+    lat_bp = 0;
+    lat_ap = 0;
+    lon_bp = 0;
+    lon_ap = 0;
+    latsign = 0;
+    lonsign = 0;
+    alt = 0;
+    sats = 0;
+    altsign = 0;
+    return;
+  } 
+  else if (c == 'R' && frame_started){
+    checksum_calculation ^= c;
+    return;
+  } 
+  else if (c == 'V' && frame_started){
+    checksum_calculation ^= c;
     return;
   }
-
-  //calculate checksum
-  if (buffer_index == 1) {
-    //checksum is everything xored except * and checksum itself
-    checksum_calculation = c;
+  else if (c == '*' && frame_started){
+    checksum_started = true;
+    return;
   }
-  else if (buffer_index > 1) {
-    if (!checksum) {
+  else if ((c == '\r' || c == '\n') && frame_started){
+    if (checksum_read == checksum_calculation){
+      lat = gpsToLong(latsign, lat_bp, lat_ap);
+      lon = gpsToLong(lonsign, lon_bp, lon_ap);
+
+      // data is ready
+      HAS_FIX = true;
+      HAS_ALT = true;
+    }
+    else{
+      //needed?
+    }
+    frame_started = false;
+  }
+
+  if (frame_started){
+    if (checksum_started){
+      checksum_read *= 16;
+      if (c >= '0' && c <= '9'){
+        checksum_read += (c - '0');
+      }
+      else{
+        checksum_read += (c-'A'+10);
+      }
+    }
+    else{
+      //we get data
       checksum_calculation ^= c;
     }
-    else if (c != '*' && c != '\r' && c != '\n') {
-      //we reached checksum
-      checksum_read *= 10;
-      checksum_read += c;
-    }
   }
-  //valid data?
-  if (commacount == 0 && buffer_index > 1) {
-    if (buffer[1] != '1') {
-      //no valid data
-      buffer_index = 0;
-      //TODO warning (beeper??)
-      return;
-    }
-  }
-  if (c == ',') {
-    // first value after comma
-    commacount++;
-    switch (commacount) {
-      case 1:
-        // Units (1 metric, 0 imperial)
-        break;
-      case 3:
-        // ddmm.mmmm Lat
-        dot_found = 0;
-        lat_bp = 0;
-        lat_ap = 0;
-        break;
-      case 4:
-        // N/S
-        if (c == 'N') {
-          latsign = 1;
-        }
-        else if (c == 'S') {
-          latsign = -1;
-        }
-        else {
-          //invalid data
-          buffer_index == 0;
-          return;
-        }
-        break;
-      case 5:
-        // dddmm.mmmm Lon
-        dot_found = 0;
-        lat_bp = 0;
-        lat_ap = 0;
-        break;
-      case 6:
-        // E/W
-        if (c == 'E') {
-          lonsign = 1;
-        }
-        else if ( c == 'W') {
-          lonsign = -1;
-        }
-        else {
-          //invalid data
-          buffer_index == 0;
-          return;
-        }
-        break;
-      case 7:
-        // +/- altitude (relative)
-        break;
-      case 8:
-        // +/- altitude (absolute)
-        alt = 0;
-        break;
-      case 23:
-        // Sats
-        sats = 0;
-        break;
-    }
-  } else {
-    // values behind first value
-    switch (commacount) {
-      case 3:
-        // ddmm.mmmm Lat
-        if (c == '.' || dot_found) {
-          dot_found++;
-        }
-
-        if (c != '.' && !dot_found) {
-          lat_bp *= 10;
-          lat_bp += (c - '0');
-        }
-        else if (c != '.' && dot_found < 7) {
-          lat_ap *= 10;
-          lat_ap += (c - '0');
-        }
-        else {
-          //invalid data
-          buffer_index == 0;
-          return;
-        }
-        break;
-      case 5:
-        // dddmm.mmmm Lon
-        if (c == '.' || dot_found) {
-          dot_found = 1;
-        }
-
-        if (c != '.' && !dot_found) {
-          lon_bp *= 10;
-          lon_bp += (c - '0');
-        }
-        else if (c != '.' && dot_found < 7) {
-          lon_ap *= 10;
-          lon_ap += (c - '0');
-        }
-        else {
-          //invalid data
-          buffer_index == 0;
-          return;
-        }
-        break;
-      case 7:
-        // +/- altitude (relative)
-        break;
-      case 8:
-        // +/- altitude (absolute)
-        if (c == '+') {
-          altsign = 1;
-          break;
-        }
-        else if (c == '-') {
-          altsign = -1;
-          break;
-        }
-
-        alt *= 10;
-        alt += (c - '0');
-        break;
-      case 23:
-        // Sats
-        sats *= 10;
-        sats += (c - '0');
-        break;
-    }
-  }
-
-  if (c == '\n') {
-    //end of line -> checksum is available
-    if (checksum_calculation != checksum_read) {
-#ifdef DEBUG
-      Serial.println("RVOSD: Checksum wrong.");
-#endif
-      buffer_index = 0;
-      return;
-    }
-  }
-  else {
-    buffer_index++;
+  else{
     return;
   }
 
-#ifdef DEBUG
-  Serial.println("RVOSD: Data valid and ready.");
-#endif
+  if (c == ','){
+    index++;
+    return;
+  }
+
+  switch (index) {
+  case 0:
+    //frame valid?
+    if ((c - '0') == 0){
+      //frame invalid, skip...
+      frame_started = false;
+      return;
+    }
+    else if ((c - '0') == 1){
+      //frame valid, do nothing
+    }
+    break;
+  case 1:
+    //units, 0 = imperial, 1 = metric
+    if (c - '0' == 0){
+      metric = false;
+    }
+    else if (c - '0' == 1){
+      metric = true;
+    }
+    break;
+  case 3:
+    //lat
+    if (c == '.'){
+      dot_found = true;
+      return;
+    }
+    if (!dot_found){
+      lat_bp *= 10;
+      lat_bp += c-'0';
+    }
+    else{
+      lat_ap *= 10;
+      lat_ap += c-'0';
+    }
+    break;
+  case 4:
+    //N/S
+    if (c == 'N'){
+      latsign = 1;
+    }
+    else if (c == 'S'){
+      latsign = -1;
+    }
+    break;
+  case 5:
+    //lon
+    if (c == '.'){
+      dot_found = true;
+      return;
+    }
+    if (!dot_found){
+      lon_bp *= 10;
+      lon_bp += c-'0';
+    }
+    else{
+      lon_ap *= 10;
+      lon_ap += c-'0';
+    }
+    break;
+  case 6:
+    //E/W
+    if (c == 'E'){
+      lonsign = 1;
+    }
+    else if (c == 'W'){
+      lonsign = -1;
+    }
+    break;
+  case 8:
+    //absolute alt;
+    if (c == '.'){
+      dot_found = true;
+      return;
+    }
+    else if (c == '-'){
+      altsign = -1;
+      return;
+    }
+    else if (c == '+'){
+      altsign = 1;
+      return;
+    }
+    if (!dot_found){
+      alt *= 10;
+      alt += c- '0';
+    }
+    else{
+      //no after comma i think
+    }
+    break;
+  case 23:
+    sats *= 10;
+    sats += c - '0';
+  default:
+    break;
+  }
 
 
-  lat = gpsToLong(latsign, lat_bp, lat_ap);
-  lon = gpsToLong(lonsign, lon_bp, lon_ap);
-  altitude = alt * altsign;
-
-  // data is ready
-  HAS_FIX = true;
-  HAS_ALT = true;
 }
 #endif
+
 
 
