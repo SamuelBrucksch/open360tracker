@@ -31,7 +31,7 @@ Short Video of tracker working on the ground:
 
 For furter information, please have a look at our Wiki Howto's:
 
-[Servos](https://github.com/SamuelBrucksch/open360tracker/wiki/Servos)
+[Connections](https://github.com/SamuelBrucksch/open360tracker/wiki/Anschlussdiagram)
 
 [Buttons](https://github.com/SamuelBrucksch/open360tracker/wiki/Buttons)
 
