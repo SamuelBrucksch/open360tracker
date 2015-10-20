@@ -167,10 +167,8 @@ void parseTelemHubByte(uint8_t c) {
 
   switch (dataId) {
     case GPS_ALT_BP_ID:
-#ifndef VARIO
       alt = int16_t((byte0 << 8) + c);
       HAS_ALT = true;
-#endif
       break;
     case GPS_LON_BP_ID:
       lon_bp = (c << 8) + byte0;
@@ -203,11 +201,5 @@ void parseTelemHubByte(uint8_t c) {
     HAS_FIX = true;
   }
 }
-
-#if defined(VARIO)
-void evalVario(int16_t altitude_bp, uint16_t altitude_ap) {
-  alt = (int32_t)altitude_bp * 100 + (altitude_bp > 0 ? altitude_ap : -altitude_ap);
-}
-#endif
 #endif
 
