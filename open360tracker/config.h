@@ -20,7 +20,7 @@
  *  
  *  MEGA -> APM & other MEGA Boards
  */
-#define MEGA
+//#define MEGA
 
 /* #### Protocol ####
  *
