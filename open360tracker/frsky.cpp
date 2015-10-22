@@ -173,7 +173,7 @@ void parseTelemHubByte(uint8_t c) {
 
 	switch (dataId) {
 	case GPS_ALT_BP_ID:
-		alt = int16_t((byte0 << 8) + c);
+		alt = int16_t((c << 8) + byte0);
 		HAS_ALT = true;
 		break;
 	case GPS_LON_BP_ID:
