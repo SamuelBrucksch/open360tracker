@@ -119,7 +119,7 @@ void processFrskyPacket(uint8_t *packet) {
 		//maybe we can use RSSI here to start an alarm when RSSI level gets low
 		break;
 	case USRPKT:
-		uint8_t numBytes = packet[2];
+		uint8_t numBytes = packet[1];
 		for (uint8_t i = 3; i < numBytes; i++) {
 			parseTelemHubByte(packet[i]);
 		}
