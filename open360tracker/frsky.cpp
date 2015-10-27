@@ -120,7 +120,7 @@ void processFrskyPacket(uint8_t *packet) {
 		break;
 	case USRPKT:
 		uint8_t numBytes = packet[1];
-		for (uint8_t i = 3; i < numBytes; i++) {
+		for (uint8_t i = 3; i < numBytes+3; i++) {
 			parseTelemHubByte(packet[i]);
 		}
 		break;
