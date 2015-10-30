@@ -81,8 +81,12 @@ void encodeTargetData(uint8_t c) {
 		if (c == START_STOP)
 			break; // Remain in userDataStart if possible 0x7e,0x7e doublet found.
 
-		if (numPktBytes < 19)
+		if (numPktBytes < FRSKY_RX_PACKET_SIZE)
 			frskyRxBuffer[numPktBytes++] = c;
+		else{
+			dataState = STATE_DATA_IDLE;
+			break;
+		}
 		dataState = STATE_DATA_IN_FRAME;
 		break;
 	case STATE_DATA_IN_FRAME:
@@ -96,11 +100,20 @@ void encodeTargetData(uint8_t c) {
 			dataState = STATE_DATA_IDLE;
 			break;
 		}
-		frskyRxBuffer[numPktBytes++] = c;
+		if (numPktBytes < FRSKY_RX_PACKET_SIZE)
+			frskyRxBuffer[numPktBytes++] = c;
+		else{
+			dataState = STATE_DATA_IDLE;
+			break;
+		}
 		break;
 	case STATE_DATA_XOR:
-		if (numPktBytes < 19)
+		if (numPktBytes < FRSKY_RX_PACKET_SIZE)
 			frskyRxBuffer[numPktBytes++] = c ^ STUFF_MASK;
+		else{
+			dataState = STATE_DATA_IDLE;
+			break;
+		}
 		dataState = STATE_DATA_IN_FRAME;
 		break;
 	case STATE_DATA_IDLE:
