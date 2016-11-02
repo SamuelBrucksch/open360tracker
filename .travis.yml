@@ -9,7 +9,7 @@ before_install:
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
 install:
   - wget https://github.com/mikalhart/TinyGPS/archive/v13.zip
-  - unzip TinyGPS-13.zip
+  - unzip v13.zip
   - sudo mv TinyGPS-13 /usr/local/share/arduino/libraries/
  # - arduino --install-library "TinyGPS"
 script:
