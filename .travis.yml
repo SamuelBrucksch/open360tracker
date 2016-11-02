@@ -10,7 +10,7 @@ before_install:
 install:
  # - arduino --install-library "TinyGPS"
 script:
-  - arduino --verify --board arduino:avr:pro:cpu=atmega328 $PWD/open360tracker/open360tracker.ino
+  - arduino --verify --board arduino:pro:nano:cpu=atmega368 $PWD/open360tracker/open360tracker.ino
 notifications:
   email:
     on_success: change
