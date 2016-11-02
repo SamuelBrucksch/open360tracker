@@ -8,9 +8,12 @@ before_install:
   - sudo mv arduino-1.6.5 /usr/local/share/arduino
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
 install:
+  - wget https://github.com/mikalhart/TinyGPS/archive/v13.zip
+  - unzip TinyGPS-13.zip
+  - sudo mv TinyGPS-13 /usr/local/share/arduino/libraries/
  # - arduino --install-library "TinyGPS"
 script:
-  - arduino --verify --board arduino:pro:nano:cpu=atmega368 $PWD/open360tracker/open360tracker.ino
+  - arduino --verify --board arduino:pro:cpu=atmega368 $PWD/open360tracker/open360tracker.ino
 notifications:
   email:
     on_success: change
