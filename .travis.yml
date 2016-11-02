@@ -8,12 +8,9 @@ before_install:
   - sudo mv arduino-1.6.5 /usr/local/share/arduino
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
 install:
-  - ln -s $PWD /usr/local/share/arduino/libraries/Adafruit_FONA
-  - arduino --install-library "Adafruit SleepyDog Library,Adafruit MQTT Library"
+  - arduino --install-library "TinyGPS"
 script:
-  - arduino --verify --board arduino:avr:uno $PWD/examples/FONAtest/FONAtest.ino
-  - arduino --verify --board arduino:avr:uno $PWD/examples/IncomingCall/IncomingCall.ino
-  - arduino --verify --board arduino:avr:uno $PWD/examples/AdafruitIO_GPS/AdafruitIO_GPS.ino
+  - arduino --verify --board arduino:avr:pro:cpu=atmega328 $PWD/open360tracker/open360tracker.ino
 notifications:
   email:
     on_success: change
